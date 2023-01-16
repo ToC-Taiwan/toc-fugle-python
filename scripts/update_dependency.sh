@@ -12,6 +12,7 @@ $pip install -U \
   --no-warn-script-location \
   --no-cache-dir \
   fugle-trade \
+  numpy \
   grpcio \
   grpcio-tools \
   python-dotenv \

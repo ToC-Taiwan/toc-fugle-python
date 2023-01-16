@@ -1,9 +1,9 @@
-PWD=$(shell pwd)
 PIP=$(shell which pip3)
 PYTHON=$(shell which python3)
+PBPATH=$(PWD)/src/pb
 
 run: ### run
-	@$(PYTHON) -BOO ./src/main.py
+	@PYTHONPATH=$(PBPATH) $(PYTHON) -BOO ./src/main.py
 .PHONY: run
 
 help: ## display this help screen
@@ -11,11 +11,16 @@ help: ## display this help screen
 .PHONY: help
 
 lint: ### lint
-	@PYLINTHOME=$(PWD) PYTHONPATH=$(PWD)/pb mypy --check-untyped-defs --config-file=./mypy.ini ./src && pylint ./src
+	@mypy --check-untyped-defs --config-file=./mypy.ini ./src
+	@pylint ./src
 .PHONY: lint
 
 update: ### update dependencies
-	./scripts/update_dependency.sh $(PIP)
-	./scripts/install_dev_dependency.sh $(PIP)
-	./scripts/compile-proto.sh $(PYTHON)
+	@./scripts/update_dependency.sh $(PIP)
+	@./scripts/install_dev_dependency.sh $(PIP)
+	@./scripts/compile-proto.sh $(PYTHON)
 .PHONY: update
+
+proto: ### compile proto
+	@./scripts/compile-proto.sh $(PYTHON)
+.PHONY: proto

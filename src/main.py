@@ -1,8 +1,13 @@
 """FUGLE PYTHON API FORWARDER"""
+import os
+import time
+
 from prometheus_client import start_http_server
 
 from cron import init_schedule_job
 from env import RequiredEnv
+from grpcsrv import serve
+from logger import logger
 from rabbitmq_setting import RabbitMQSetting
 
 env = RequiredEnv()
@@ -17,7 +22,11 @@ init_schedule_job()
 rc = RabbitMQSetting()
 rc.reset_rabbitmq_exchange()
 
-# while True:
-#     logger.info("FUGLE PYTHON API FORWARDER is running")
-#     time.sleep(60)
-#     pass
+
+try:
+    serve(port=str(grpc_port), cfg=env)
+
+except RuntimeError:
+    logger.error("runtime error, retry after 30 seconds")
+    time.sleep(30)
+    os._exit(1)
