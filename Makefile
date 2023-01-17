@@ -3,7 +3,7 @@ PYTHON=$(shell which python3)
 PBPATH=$(PWD)/src/pb
 
 run: config ### run
-	@PYTHONPATH=$(PBPATH) $(PYTHON) -BOO ./src/fugle.py
+	@PYTHON_KEYRING_BACKEND=keyrings.cryptfile.cryptfile.CryptFileKeyring PYTHONPATH=$(PBPATH) $(PYTHON) -BOO ./src/main.py
 .PHONY: run
 
 lint: ### lint

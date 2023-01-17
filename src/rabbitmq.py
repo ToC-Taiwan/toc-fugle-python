@@ -5,8 +5,6 @@ from queue import Queue
 
 import pika
 
-from logger import logger
-
 logging.getLogger("pika").setLevel(logging.WARNING)
 
 
@@ -47,31 +45,14 @@ class RabbitMQS:
     def create_pika(self):
         conn = pika.BlockingConnection(self.parameters)
         ch = conn.channel()
-        ch.exchange_declare(exchange=self.exchange, exchange_type="direct", durable=True)
+        ch.exchange_declare(
+            exchange=self.exchange,
+            exchange_type="direct",
+            durable=True,
+        )
         return PikaCC(conn, ch)
 
     def fill_pika_queue(self):
         for _ in range(self.pool_size):
             self.pika_queue.put(self.create_pika())
         threading.Thread(target=self.send_heartbeat).start()
-
-    def event_callback(self):
-        logger.info("event_callback")
-
-    def order_status_callback(self):
-        logger.info("order_status_callback")
-
-    def stock_quote_callback_v1(self):
-        logger.info("stock_quote_callback_v1")
-
-    def future_quote_callback_v1(self):
-        logger.info("future_quote_callback_v1")
-
-    def stock_bid_ask_callback(self):
-        logger.info("stock_bid_ask_callback")
-
-    def future_bid_ask_callback(self):
-        logger.info("future_bid_ask_callback")
-
-    def send_order_arr(self):
-        logger.info("send_order_arr")

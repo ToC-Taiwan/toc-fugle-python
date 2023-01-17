@@ -79,7 +79,6 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
 
 
 def serve(port: str, cfg: RequiredEnv):
-    # set call back
     rq = RabbitMQS(
         str(cfg.rabbitmq_url),
         str(cfg.rabbitmq_exchange),

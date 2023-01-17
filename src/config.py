@@ -1,4 +1,8 @@
+from hashlib import md5
+
 from jinja2 import Environment, FileSystemLoader
+from keyring import set_keyring, set_password
+from keyrings.cryptfile.cryptfile import CryptFileKeyring
 
 from env import RequiredEnv
 
@@ -16,3 +20,11 @@ content = template.render(
 
 with open(filename, mode="w", encoding="utf-8") as message:
     message.write(content)
+
+
+kr = CryptFileKeyring()
+kr.keyring_key = md5(env.api_user.encode("utf-8")).hexdigest()
+
+set_keyring(kr)
+set_password("fugle_trade_sdk:account", env.api_user, env.login_password)
+set_password("fugle_trade_sdk:cert", env.api_user, env.ca_password)
