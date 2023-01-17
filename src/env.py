@@ -35,3 +35,13 @@ class RequiredEnv:  # pylint: disable=too-many-instance-attributes
         self.rabbitmq_url = os.environ.get("RABBITMQ_URL")
         if self.rabbitmq_url is None:
             raise Exception("Missing environment RABBITMQ_URL")
+
+        self.api_key = os.environ.get("API_KEY")
+        if self.api_key is None:
+            raise Exception("Missing environment API_KEY")
+        self.api_secret = os.environ.get("API_SECRET")
+        if self.api_secret is None:
+            raise Exception("Missing environment API_SECRET")
+        self.api_user = os.environ.get("API_USER")
+        if self.api_user is None:
+            raise Exception("Missing environment API_USER")

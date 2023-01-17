@@ -145,3 +145,5 @@ logs/*
 !.gitkeep
 *.log
 protobuf
+.DS_Store
+config.ini

@@ -10,6 +10,7 @@ $pip install -U \
   pylint-protobuf \
   black \
   mypy \
+  Jinja2 \
   pylint
 
 mypy --install-types --non-interactive --check-untyped-defs --config-file=./mypy.ini ./src
