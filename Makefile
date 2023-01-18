@@ -7,8 +7,8 @@ run: config ### run
 .PHONY: run
 
 lint: ### lint
-	@mypy --check-untyped-defs --config-file=./mypy.ini ./src
-	@pylint ./src
+	@mypy --check-untyped-defs --config-file=./mypy.ini ./src > mypy_result
+	@pylint ./src > pylint_result
 .PHONY: lint
 
 install: ### install dependencies

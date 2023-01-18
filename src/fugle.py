@@ -1,6 +1,5 @@
 import json
 from configparser import ConfigParser
-from pprint import pprint
 
 import fugle_trade.constant as fc
 import fugle_trade.order as fo
@@ -8,6 +7,8 @@ from fugle_trade.sdk import SDK
 
 import fugle_entity as fe
 from logger import logger
+
+# from pprint import pprint
 
 
 class Fugle:
@@ -32,9 +33,9 @@ class Fugle:
     def get_trade_status(self):
         return fe.TradeStatus.from_dict(self._sdk.get_trade_status())
 
-    def get_transactions(self, range: str):
+    def get_transactions(self, query_range: str):
         arr: list[fe.FillOrder] = []
-        for data in self._sdk.get_transactions(range):
+        for data in self._sdk.get_transactions(query_range):
             arr.append(fe.FillOrder.from_dict(data))
         return arr
 

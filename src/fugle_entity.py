@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 
 @dataclass
@@ -136,7 +136,7 @@ class TradeStatus:
 
 
 @dataclass
-class FillDetail:
+class FillDetail:  # pylint: disable=too-many-instance-attributes
     """
     db_fee: 融券手續費
     fee: 手續費 (string)
@@ -241,7 +241,7 @@ class FillDetail:
 
 
 @dataclass
-class FillOrder:
+class FillOrder:  # pylint: disable=too-many-instance-attributes
     """
     cost: 已實現損益成本小計
     price_avg: 成交均價 (string)
@@ -307,7 +307,7 @@ class FillOrder:
     s_type: str
     t_date: str
     trade: str
-    mat_dats: List[FillDetail]
+    mat_dats: list[FillDetail]
 
     @staticmethod
     def from_dict(obj: Any) -> "FillOrder":
