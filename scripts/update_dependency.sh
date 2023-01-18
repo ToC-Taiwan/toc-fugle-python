@@ -19,6 +19,7 @@ $pip install -U \
   schedule \
   pika \
   requests \
+  Jinja2 \
   prometheus-client
 
 $pip freeze > requirements.txt
