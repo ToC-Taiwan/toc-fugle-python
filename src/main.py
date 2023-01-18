@@ -9,11 +9,10 @@ from env import RequiredEnv
 from fugle import Fugle
 from grpcsrv import serve
 from logger import logger
+from rabbitmq import RabbitMQS
 from rabbitmq_setting import RabbitMQSetting
 
 env = RequiredEnv()
-grpc_port = env.grpc_port
-
 start_http_server(8887)
 
 # add schedule to exit the program
@@ -23,11 +22,35 @@ init_schedule_job()
 rc = RabbitMQSetting()
 rc.reset_rabbitmq_exchange()
 
-# login to fugle
-Fugle()
+rq = RabbitMQS(
+    str(env.rabbitmq_url),
+    str(env.rabbitmq_exchange),
+    128,
+)
+
+fugle = Fugle()
+sdk = fugle.get_sdk()
+
+
+@sdk.on("error")
+def on_error(err):
+    rq.error_callback(err)
+
+
+@sdk.on("order")
+def on_order(data):
+    rq.order_callback(data)
+
+
+@sdk.on("dealt")
+def on_dealt(data):
+    rq.dealt_callback(data)
+
+
+fugle.connect_websocket()
 
 try:
-    serve(port=str(grpc_port), cfg=env)
+    serve(port=str(env.grpc_port), rq=rq, f=fugle)
 
 except RuntimeError:
     logger.error("runtime error, retry after 30 seconds")

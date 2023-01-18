@@ -8,7 +8,7 @@ from queue import Queue
 import google.protobuf.empty_pb2
 import grpc
 
-from env import RequiredEnv
+from fugle import Fugle
 from logger import logger
 from pb import health_pb2, health_pb2_grpc, trade_pb2_grpc
 from rabbitmq import RabbitMQS
@@ -55,8 +55,9 @@ class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
 
 
 class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
-    def __init__(self, rq: RabbitMQS):
+    def __init__(self, rq: RabbitMQS, fugle: Fugle):
         self.rq = rq
+        self.fugle = fugle
         self.send_order_lock = threading.Lock()
 
     def BuyStock(self, request, _):
@@ -78,16 +79,10 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
         logger.info("GetLocalOrderStatusArr")
 
 
-def serve(port: str, cfg: RequiredEnv):
-    rq = RabbitMQS(
-        str(cfg.rabbitmq_url),
-        str(cfg.rabbitmq_exchange),
-        128,
-    )
-
+def serve(port: str, rq: RabbitMQS, f: Fugle):
     # gRPC servicer
     health_servicer = gRPCHealthCheck()
-    trade_servicer = gRPCTrade(rq=rq)
+    trade_servicer = gRPCTrade(rq=rq, fugle=f)
     server = grpc.server(
         futures.ThreadPoolExecutor(),
         options=[
@@ -101,6 +96,7 @@ def serve(port: str, cfg: RequiredEnv):
             ),
         ],
     )
+
     health_pb2_grpc.add_HealthCheckInterfaceServicer_to_server(health_servicer, server)
     trade_pb2_grpc.add_TradeInterfaceServicer_to_server(trade_servicer, server)
 

@@ -613,3 +613,103 @@ class Inventory:  # pylint: disable=too-many-instance-attributes
             _value_now,
             _stk_dats,
         )
+
+
+@dataclass
+class Settlement:
+    """
+    c_date: 交割日期 YYYYMMDD (string)
+    date: 成交日期 YYYYMMDD (string)
+    price: 交割款應收金額 (string)
+
+    example:
+    {
+        "c_date": "20230119",
+        "date": "20230117",
+        "price": "-66895"
+    }
+    """
+
+    c_date: str
+    date: str
+    price: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> "Settlement":
+        _c_date = str(obj.get("c_date"))
+        _date = str(obj.get("date"))
+        _price = str(obj.get("price"))
+        return Settlement(_c_date, _date, _price)
+
+
+@dataclass
+class CreatedAt:
+    nanos: int
+    seconds: int
+
+    @staticmethod
+    def from_dict(obj: Any) -> "CreatedAt":
+        _nanos = int(obj.get("nanos"))
+        _seconds = int(obj.get("seconds"))
+        return CreatedAt(_nanos, _seconds)
+
+
+@dataclass
+class KeyInfo:
+    """
+    api_key: API 金鑰 (string)
+    api_key_memo: API 金鑰備註 (string)
+    api_key_name: API 金鑰名稱 (string)
+    created_at: API 金鑰建立時間
+    scope: API 金鑰權限 (KeyScope enum)
+    status: API 金鑰狀態 (number)
+
+    example:
+    {
+        "api_key": "XXXXXXXXXX",
+        "api_key_memo": "",
+        "api_key_name": "",
+        "created_at": {
+            "nanos": 107000000,
+            "seconds": 1673923546
+        },
+        "scope": "C",
+        "status": 1
+    }
+    """
+
+    api_key: str
+    api_key_memo: str
+    api_key_name: str
+    created_at: CreatedAt
+    scope: str
+    status: int
+
+    @staticmethod
+    def from_dict(obj: Any) -> "KeyInfo":
+        _api_key = str(obj.get("api_key"))
+        _api_key_memo = str(obj.get("api_key_memo"))
+        _api_key_name = str(obj.get("api_key_name"))
+        _created_at = CreatedAt.from_dict(obj.get("created_at"))
+        _scope = str(obj.get("scope"))
+        _status = int(obj.get("status"))
+        return KeyInfo(_api_key, _api_key_memo, _api_key_name, _created_at, _scope, _status)
+
+
+@dataclass
+class FugleTime:
+    """
+    time: Fugle API 伺服器時間 (string)
+
+    example:
+    {
+        "time": "2023-01-18 17:32:02.029"
+    }
+    """
+
+    time: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> "FugleTime":
+        _time = str(obj.get("time"))
+        return FugleTime(_time)
