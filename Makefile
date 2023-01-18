@@ -11,6 +11,12 @@ lint: ### lint
 	@pylint ./src
 .PHONY: lint
 
+install: ### install dependencies
+	@$(PIP) install --no-warn-script-location --no-cache-dir -r requirements.txt
+	@$(PIP) install --no-warn-script-location --no-cache-dir mypy-protobuf pylint-protobuf mypy pylint
+	@mypy --install-types --check-untyped-defs --non-interactive ./src
+.PHONY: install
+
 update: ### update dependencies
 	@./scripts/update_dependency.sh $(PIP)
 	@./scripts/install_dev_dependency.sh $(PIP)

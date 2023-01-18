@@ -1,4 +1,6 @@
+import json
 from configparser import ConfigParser
+from pprint import pprint
 
 import fugle_trade.constant as fc
 import fugle_trade.order as fo
@@ -13,27 +15,28 @@ class Fugle:
         config = ConfigParser()
         config.read("data/config.ini")
         self._sdk = SDK(config)
+        self.login()
 
     def login(self):
         self._sdk.login()
 
-    def show_cert(self):
-        cert = fe.Cert(self._sdk.certinfo())
-        logger.info(cert.cn)
-        logger.info(cert.is_valid)
-        logger.info(cert.not_after)
-        logger.info(cert.serial)
+    def certinfo(self):
+        return fe.Cert.from_dict(self._sdk.certinfo())
 
-    def get_inventories(self):
-        inventories = self._sdk.get_inventories()
-        return inventories
+    def get_balance(self):
+        return fe.Balance.from_dict(self._sdk.get_balance())
 
-    def get_order_results(self):
-        tmp: list[fe.OrderResult] = []
-        results = self._sdk.get_order_results()
-        for result in results:
-            tmp.append(fe.OrderResult.from_dict(result))
-        return tmp
+    def get_market_status(self):
+        return fe.MarketStatus.from_dict(self._sdk.get_market_status())
+
+    def get_trade_status(self):
+        return fe.TradeStatus.from_dict(self._sdk.get_trade_status())
+
+    def get_transactions(self, range: str):
+        arr: list[fe.FillOrder] = []
+        for data in self._sdk.get_transactions(range):
+            arr.append(fe.FillOrder.from_dict(data))
+        return arr
 
     def buy_stock(self, stock_num: str, price: float, quantity: int):
         order = fo.OrderObject(
@@ -45,3 +48,6 @@ class Fugle:
         )
         result = self._sdk.place_order(order)
         print(type(result))
+
+    def print_original(self, data):
+        logger.info(json.dumps(data, indent=4, ensure_ascii=False))

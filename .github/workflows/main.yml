@@ -1,0 +1,63 @@
+name: Workflow
+run-name: ${{ github.actor }} is running TOC FUGLE PYTHON Actions 👁
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+env:
+    REGISTRY: ghcr.io
+
+jobs:
+    Lint:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10.8"
+
+            - name: Install Requirements
+              run: |
+                  make install
+
+            - name: Lint
+              run: |
+                  export PYTHONPATH=$(pwd)/src/pb
+                  export PYLINTHOME=$(pwd)
+                  mypy --check-untyped-defs --config-file=./mypy.ini ./src && pylint ./src
+
+    Build:
+        needs: Lint
+        env:
+            REPOSITORY: "${{ github.repository }}"
+            SHA: ${{ github.sha }}
+
+        runs-on: ubuntu-latest
+        steps:
+            - name: set local env
+              run: |
+                  echo "REPOSITORY_LC=${REPOSITORY,,}" >> ${GITHUB_ENV}
+                  echo "SHORT_SHA=$(echo ${SHA} | cut -c1-7)" >> ${GITHUB_ENV}
+
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Log in to the Container registry
+              uses: docker/login-action@v2
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push
+              uses: docker/build-push-action@v3
+              with:
+                  push: true
+                  tags: |
+                      ${{ env.REGISTRY }}/${{ env.REPOSITORY_LC }}:${{ env.SHORT_SHA }}
+                      ${{ env.REGISTRY }}/${{ env.REPOSITORY_LC }}:latest
