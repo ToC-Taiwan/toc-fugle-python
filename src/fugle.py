@@ -39,6 +39,12 @@ class Fugle:
             arr.append(fe.FillOrder.from_dict(data))
         return arr
 
+    def get_inventories(self):
+        arr: list[fe.Inventory] = []
+        for data in self._sdk.get_inventories():
+            arr.append(fe.Inventory.from_dict(data))
+        return arr
+
     def buy_stock(self, stock_num: str, price: float, quantity: int):
         order = fo.OrderObject(
             buy_sell=fc.Action.Buy,
