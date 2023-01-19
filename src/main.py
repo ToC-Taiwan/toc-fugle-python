@@ -34,17 +34,17 @@ sdk = fugle.get_sdk()
 
 @sdk.on("error")
 def on_error(err):
-    rq.error_callback(err)
+    logger.error(err)
 
 
 @sdk.on("order")
-def on_order(data):
-    rq.order_callback(data)
+def on_order(_):
+    fugle.update_local_order()
 
 
 @sdk.on("dealt")
-def on_dealt(data):
-    rq.dealt_callback(data)
+def on_dealt(_):
+    fugle.update_local_order()
 
 
 fugle.connect_websocket()
@@ -54,7 +54,7 @@ try:
 
 except RuntimeError:
     logger.error("runtime error, retry after 30 seconds")
-    time.sleep(30)
+    time.sleep(10)
     os._exit(1)
 
 except KeyboardInterrupt:

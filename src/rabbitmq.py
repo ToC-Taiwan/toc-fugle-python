@@ -5,8 +5,6 @@ from queue import Queue
 
 import pika
 
-from logger import logger
-
 logging.getLogger("pika").setLevel(logging.WARNING)
 
 
@@ -58,12 +56,3 @@ class RabbitMQS:
         for _ in range(self.pool_size):
             self.pika_queue.put(self.create_pika())
         threading.Thread(target=self.send_heartbeat).start()
-
-    def error_callback(self, err):
-        logger.error(err)
-
-    def order_callback(self, order):
-        logger.info(order)
-
-    def dealt_callback(self, dealt):
-        logger.info(dealt)

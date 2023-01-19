@@ -713,3 +713,244 @@ class FugleTime:
     def from_dict(obj: Any) -> "FugleTime":
         _time = str(obj.get("time"))
         return FugleTime(_time)
+
+
+@dataclass
+class PlaceOrderResponse:
+    """
+    ord_date: 委託日期 YYYYMMDD (string)
+    ord_time: 委託時間 HHmmssSSS (string)
+    ord_no: 委託序號 (string)
+    ret_code: 處理結果代碼 (string)
+    ret_msg: 錯誤訊息 (string)
+    work_date: 有效交易日期 (string)
+
+    example:
+    TODO: check real response
+    {
+        "ord_date": "20220310",
+        "ord_time": "094932438",
+        "ord_type": "2",
+        "ord_no": "A4461",
+        "ret_code": "000000",
+        "ret_msg": "",
+        "work_date": "20220310"
+    }
+    """
+
+    ord_date: str
+    ord_time: str
+    ord_type: str
+    ord_no: str
+    ret_code: str
+    ret_msg: str
+    work_date: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> "PlaceOrderResponse":
+        _ord_date = str(obj.get("ord_date"))
+        _ord_time = str(obj.get("ord_time"))
+        _ord_type = str(obj.get("ord_type"))
+        _ord_no = str(obj.get("ord_no"))
+        _ret_code = str(obj.get("ret_code"))
+        _ret_msg = str(obj.get("ret_msg"))
+        _work_date = str(obj.get("work_date"))
+        return PlaceOrderResponse(_ord_date, _ord_time, _ord_type, _ord_no, _ret_code, _ret_msg, _work_date)
+
+    @staticmethod
+    def fail_res(e: Exception) -> "PlaceOrderResponse":
+        return PlaceOrderResponse("", "", "", "", "", str(e), "")
+
+
+@dataclass
+class CancelOrderResponse:
+    """
+    ret_code: 處理結果代碼 (string)
+    ret_msg: 錯誤訊息 (string)
+    ord_date: 刪除委託日期 YYYYMMDD (string)
+    ord_time: 刪除委託時間 HHmmssSSS (string)
+
+    example:
+    TODO: check real response
+    {
+        "ret_code": "000000",
+        "ret_msg": "",
+        "ord_date": "20220310",
+        "ord_time": "101825110"
+    }
+    """
+
+    ret_code: str
+    ret_msg: str
+    ord_date: str
+    ord_time: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> "CancelOrderResponse":
+        _ret_code = str(obj.get("ret_code"))
+        _ret_msg = str(obj.get("ret_msg"))
+        _ord_date = str(obj.get("ord_date"))
+        _ord_time = str(obj.get("ord_time"))
+        return CancelOrderResponse(_ret_code, _ret_msg, _ord_date, _ord_time)
+
+    @staticmethod
+    def fail_res(e: Exception) -> "CancelOrderResponse":
+        return CancelOrderResponse("", str(e), "", "")
+
+
+@dataclass
+class OrderResult:  # pylint: disable=too-many-instance-attributes
+    """
+    ap_code: 盤別 (APCode enum)
+    avg_price: 成交均價 (number)
+    bs_flag: 委託條件 (BSFlag enum)
+    buy_sell: 買賣別 (Action enum)
+    cel_qty: 已取消數量(張) (number)
+    cel_qty_share: 已取消數量(股) (number)
+    celable: 可取消狀態 1:可取消 2:不可取消 (string)
+    err_code: 錯誤碼 (string)
+    err_msg: 錯誤訊息 (string)
+    mat_qty: 已成交數量(張) (number)
+    mat_qty_share: 已成交數量(股) (number)
+    od_price: 委託價格 (number)
+    ord_date: 原始委託日期 (string)
+    ord_no: 委託書編號 (string)
+    ord_status: 預約狀態 1:預約單 2:盤中單 (string)
+    ord_time: 原始委託時間 (string)
+    org_qty: 原始委託數量(張) (number)
+    org_qty_share: 原始委託數量(股) (number)
+    pre_ord_no: 預約單編號，預約單時才有值 (string)
+    price_flag: 價格旗標 (PriceFlag enum)
+    stock_no: 股票代號 (string)
+    trade: 交易類別 (Trade enum)
+    work_date: 有效交易日期 (string)
+
+    example:
+    {
+        "work_date": "20230117",
+        "ord_date": "20230117",
+        "ord_time": "085339485",
+        "ord_status": "2",
+        "ord_no": "60420",
+        "pre_ord_no": "",
+        "stock_no": "006208",
+        "buy_sell": "B",
+        "ap_code": "1",
+        "price_flag": "0",
+        "trade": "0",
+        "od_price": 66.85,
+        "org_qty": 1,
+        "mat_qty": 1,
+        "cel_qty": 0,
+        "celable": "2",
+        "err_code": "00000000",
+        "err_msg": "",
+        "avg_price": 66.8,
+        "bs_flag": "R",
+        "org_qty_share": 1000,
+        "mat_qty_share": 1000,
+        "cel_qty_share": 0
+    }
+    """
+
+    work_date: str
+    ord_date: str
+    ord_time: str
+    ord_status: str
+    ord_no: str
+    pre_ord_no: str
+    stock_no: str
+    buy_sell: str
+    ap_code: str
+    price_flag: str
+    trade: str
+    od_price: float
+    org_qty: int
+    mat_qty: int
+    cel_qty: int
+    celable: str
+    err_code: str
+    err_msg: str
+    avg_price: float
+    bs_flag: str
+    org_qty_share: int
+    mat_qty_share: int
+    cel_qty_share: int
+
+    @staticmethod
+    def from_dict(obj: Any) -> "OrderResult":
+        _work_date = str(obj.get("work_date"))
+        _ord_date = str(obj.get("ord_date"))
+        _ord_time = str(obj.get("ord_time"))
+        _ord_status = str(obj.get("ord_status"))
+        _ord_no = str(obj.get("ord_no"))
+        _pre_ord_no = str(obj.get("pre_ord_no"))
+        _stock_no = str(obj.get("stock_no"))
+        _buy_sell = str(obj.get("buy_sell"))
+        _ap_code = str(obj.get("ap_code"))
+        _price_flag = str(obj.get("price_flag"))
+        _trade = str(obj.get("trade"))
+        _od_price = float(obj.get("od_price"))
+        _org_qty = int(obj.get("org_qty"))
+        _mat_qty = int(obj.get("mat_qty"))
+        _cel_qty = int(obj.get("cel_qty"))
+        _celable = str(obj.get("celable"))
+        _err_code = str(obj.get("err_code"))
+        _err_msg = str(obj.get("err_msg"))
+        _avg_price = float(obj.get("avg_price"))
+        _bs_flag = str(obj.get("bs_flag"))
+        _org_qty_share = int(obj.get("org_qty_share"))
+        _mat_qty_share = int(obj.get("mat_qty_share"))
+        _cel_qty_share = int(obj.get("cel_qty_share"))
+        return OrderResult(
+            _work_date,
+            _ord_date,
+            _ord_time,
+            _ord_status,
+            _ord_no,
+            _pre_ord_no,
+            _stock_no,
+            _buy_sell,
+            _ap_code,
+            _price_flag,
+            _trade,
+            _od_price,
+            _org_qty,
+            _mat_qty,
+            _cel_qty,
+            _celable,
+            _err_code,
+            _err_msg,
+            _avg_price,
+            _bs_flag,
+            _org_qty_share,
+            _mat_qty_share,
+            _cel_qty_share,
+        )
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["work_date"] = self.work_date
+        result["ord_date"] = self.ord_date
+        result["ord_time"] = self.ord_time
+        result["ord_status"] = self.ord_status
+        result["ord_no"] = self.ord_no
+        result["pre_ord_no"] = self.pre_ord_no
+        result["stock_no"] = self.stock_no
+        result["buy_sell"] = self.buy_sell
+        result["ap_code"] = self.ap_code
+        result["price_flag"] = self.price_flag
+        result["trade"] = self.trade
+        result["od_price"] = self.od_price
+        result["org_qty"] = self.org_qty
+        result["mat_qty"] = self.mat_qty
+        result["cel_qty"] = self.cel_qty
+        result["celable"] = self.celable
+        result["err_code"] = self.err_code
+        result["err_msg"] = self.err_msg
+        result["avg_price"] = self.avg_price
+        result["bs_flag"] = self.bs_flag
+        result["org_qty_share"] = self.org_qty_share
+        result["mat_qty_share"] = self.mat_qty_share
+        result["cel_qty_share"] = self.cel_qty_share
+        return result

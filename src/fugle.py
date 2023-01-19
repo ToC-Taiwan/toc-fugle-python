@@ -1,4 +1,3 @@
-import json
 import threading
 from configparser import ConfigParser
 
@@ -9,21 +8,37 @@ from fugle_trade.sdk import SDK
 import fugle_entity as fe
 from logger import logger
 
-# from pprint import pprint
-
 
 class Fugle:
     def __init__(self):
         config = ConfigParser()
         config.read("data/config.ini")
+
         self._sdk = SDK(config)
+        self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
+        self.__order_map_lock = threading.Lock()
+
+        self.login()
+        self.update_local_order()
+
+    def login(self) -> None:
+        """
+        login 登入
+        """
         self._sdk.login()
+
+    def connect_websocket(self):
+        """
+        connect_websocket Connect to websocket
+        """
+        threading.Thread(target=self._sdk.connect_websocket).start()
 
     def reset_password(self) -> None:
         """
-        重設密碼
+        reset_password Reset password, never use this function
         """
         self._sdk.reset_password()
+        raise Exception("Never use this function")
 
     def get_sdk(self) -> SDK:
         """
@@ -61,11 +76,17 @@ class Fugle:
         """
         return fe.MarketStatus.from_dict(self._sdk.get_market_status())
 
-    def get_order_results(self):
+    def get_order_results(self) -> list[fe.OrderResult]:
         """
         取得委託列表
+
+        Returns:
+            list[fe.OrderResult]: 委託列表
         """
-        # TODO: wait 2023 market open
+        arr: list[fe.OrderResult] = []
+        for data in self._sdk.get_order_results():
+            arr.append(fe.OrderResult.from_dict(data))
+        return arr
 
     def get_trade_status(self) -> fe.TradeStatus:
         """
@@ -133,24 +154,129 @@ class Fugle:
         """
         return fe.FugleTime.from_dict(self._sdk.get_machine_time())
 
-    def buy_stock(self, stock_num: str, price: float, quantity: int):
+    def buy_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
+        """
+        buy_stock 買進股票
+
+        Args:
+            stock_num (str): 股票代碼
+            price (float): 價格
+            quantity (int): 數量
+
+        Returns:
+            fe.PlaceOrderResponse: 委託回應
+        """
         order = fo.OrderObject(
-            buy_sell=fc.Action.Buy,
             price=price,
             stock_no=stock_num,
             quantity=quantity,
             ap_code=fc.APCode.Common,
+            buy_sell=fc.Action.Buy,
+            price_flag=fc.PriceFlag.Limit,
+            bs_flag=fc.BSFlag.ROD,
+            trade=fc.Trade.Cash,
         )
-        self._sdk.place_order(order)
+        try:
+            return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error(e)
+            return fe.PlaceOrderResponse.fail_res(e)
 
-    def cancel_order(self):
-        pass
+    def sell_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
+        """
+        sell_stock 賣出股票
 
-    def modify_price(self):
-        pass
+        Args:
+            stock_num (str): 股票代碼
+            price (float): 價格
+            quantity (int): 數量
 
-    def connect_websocket(self):
-        threading.Thread(target=self._sdk.connect_websocket).start()
+        Returns:
+            fe.PlaceOrderResponse: 委託回應
+        """
+        order = fo.OrderObject(
+            price=price,
+            stock_no=stock_num,
+            quantity=quantity,
+            ap_code=fc.APCode.Common,
+            buy_sell=fc.Action.Sell,
+            price_flag=fc.PriceFlag.Limit,
+            bs_flag=fc.BSFlag.ROD,
+            trade=fc.Trade.Cash,
+        )
+        try:
+            return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error(e)
+            return fe.PlaceOrderResponse.fail_res(e)
 
-    def print_original(self, data):
-        logger.info(json.dumps(data, indent=4, ensure_ascii=False))
+    def sell_first_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
+        """
+        sell_first_stock 賣出股票(當沖)
+
+        Args:
+            stock_num (str): 股票代碼
+            price (float): 價格
+            quantity (int): 數量
+
+        Returns:
+            fe.PlaceOrderResponse: 委託回應
+        """
+        order = fo.OrderObject(
+            price=price,
+            stock_no=stock_num,
+            quantity=quantity,
+            ap_code=fc.APCode.Common,
+            buy_sell=fc.Action.Sell,
+            price_flag=fc.PriceFlag.Limit,
+            bs_flag=fc.BSFlag.ROD,
+            trade=fc.Trade.DayTradingSell,
+        )
+        try:
+            return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error(e)
+            return fe.PlaceOrderResponse.fail_res(e)
+
+    def cancel_stock(self, order_no: str) -> fe.CancelOrderResponse:
+        """
+        cancel_stock 取消委託
+
+        Args:
+            order_no (str): 委託單號
+
+        Returns:
+            fe.CancelOrderResponse: 取消委託回應
+        """
+        order = self.get_local_order_by_ord_no(order_no)
+        if order is None:
+            return fe.CancelOrderResponse(
+                ret_code="-101",
+                ret_msg="order not found",
+                ord_date="",
+                ord_time="",
+            )
+        try:
+            return fe.CancelOrderResponse.from_dict(self._sdk.cancel_order(order.to_dict()))
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error(e)
+            return fe.CancelOrderResponse.fail_res(e)
+
+    def get_local_order(self) -> list[fe.OrderResult]:
+        with self.__order_map_lock:
+            return list(self.__order_map.values())
+
+    def get_local_order_by_ord_no(self, ord_no: str):
+        with self.__order_map_lock:
+            return self.__order_map.get(ord_no, None)
+
+    def update_local_order(self):
+        with self.__order_map_lock:
+            cache = self.__order_map.copy()
+            self.__order_map = {}
+            try:
+                for order in self.get_order_results():
+                    self.__order_map[order.ord_no] = order
+            except Exception as e:  # pylint: disable=broad-except
+                logger.error(e)
+                self.__order_map = cache
