@@ -13,6 +13,6 @@ COPY data /toc-fugle-python/data
 COPY logs /toc-fugle-python/logs
 COPY scripts /toc-fugle-python/scripts
 COPY src /toc-fugle-python/src
-COPY makefile /toc-fugle-python/makefile
+COPY Makefile /toc-fugle-python/Makefile
 
 ENTRYPOINT ["/toc-fugle-python/scripts/docker-entrypoint.sh"]
