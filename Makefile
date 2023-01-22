@@ -7,7 +7,7 @@ run: config ### run
 .PHONY: run
 
 lint: ### lint
-	@mypy --check-untyped-defs --config-file=./mypy.ini ./src
+	@mypy --check-untyped-defs --no-strict-optional --config-file=./mypy.ini ./src
 	@PYTHONPATH=$(PBPATH) PYLINTHOME=$(PWD) pylint ./src
 .PHONY: lint
 

@@ -10,8 +10,9 @@ import grpc
 
 from fugle import Fugle
 from logger import logger
-from pb import health_pb2, health_pb2_grpc, trade_pb2_grpc
+from pb import health_pb2, health_pb2_grpc, trade_pb2, trade_pb2_grpc
 from rabbitmq import RabbitMQS
+from simulator import Simulator
 
 
 class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
@@ -59,18 +60,80 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
         self.rq = rq
         self.fugle = fugle
         self.send_order_lock = threading.Lock()
+        self.simulator = Simulator()
 
     def BuyStock(self, request, _):
-        logger.info("BuyStock")
+        result = None
+        if request.simulate is not True:
+            result = self.fugle.buy_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        else:
+            result = self.simulator.buy_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        return trade_pb2.TradeResult(
+            order_id=result.ord_no,
+            status="",
+            error="",
+        )
 
     def SellStock(self, request, _):
-        logger.info("SellStock")
+        result = None
+        if request.simulate is not True:
+            result = self.fugle.sell_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        else:
+            result = self.simulator.sell_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        return trade_pb2.TradeResult(
+            order_id=result.ord_no,
+            status="",
+            error="",
+        )
 
     def SellFirstStock(self, request, _):
-        logger.info("SellFirstStock")
+        result = None
+        if request.simulate is not True:
+            result = self.fugle.sell_first_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        else:
+            result = self.simulator.sell_first_stock(
+                request.stock_num,
+                request.price,
+                request.quantity,
+            )
+        return trade_pb2.TradeResult(
+            order_id=result.ord_no,
+            status="",
+            error="",
+        )
 
     def CancelStock(self, request, _):
-        logger.info("CancelStock")
+        result = None
+        if request.simulate is not True:
+            result = self.fugle.cancel_stock(request.order_id)
+        else:
+            result = self.simulator.cancel_stock(request.order_id)
+
+        return trade_pb2.TradeResult(
+            order_id=request.order_id,
+            status="",
+            error=result.ret_msg,
+        )
 
     def GetOrderStatusByID(self, request, _):
         logger.info("GetOrderStatusByID")

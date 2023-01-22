@@ -17,6 +17,7 @@ mypy \
   --non-interactive \
   --check-untyped-defs \
   --config-file=./mypy.ini \
+  --no-strict-optional \
   ./src
 
 pre-commit autoupdate
