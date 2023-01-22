@@ -18,11 +18,11 @@ class Fugle:
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
 
-        logger.info("Fugle init done")
-        logger.info("Is trading day: %s", self.get_market_status().is_trading_day)
-
         self.login()
         self.update_local_order()
+
+        logger.info("Fugle init done")
+        logger.info("Is trading day: %s", self.get_market_status().is_trading_day)
 
     def login(self) -> None:
         """
