@@ -21,15 +21,10 @@ jobs:
               with:
                   python-version: "3.10.8"
 
-            - name: Install Requirements
-              run: |
-                  make install
-
             - name: Lint
               run: |
-                  export PYTHONPATH=$(pwd)/src/pb
-                  export PYLINTHOME=$(pwd)
-                  mypy --check-untyped-defs --config-file=./mypy.ini ./src && pylint ./src
+                  make install
+                  make lint
 
     Build:
         needs: Lint

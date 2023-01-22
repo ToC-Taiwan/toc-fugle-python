@@ -7,14 +7,13 @@ run: config ### run
 .PHONY: run
 
 lint: ### lint
-	@mypy --check-untyped-defs --config-file=./mypy.ini ./src > mypy_result
-	@PYTHONPATH=$(PBPATH) PYLINTHOME=$(PWD) pylint ./src > pylint_result
+	@mypy --check-untyped-defs --config-file=./mypy.ini ./src
+	@PYTHONPATH=$(PBPATH) PYLINTHOME=$(PWD) pylint ./src
 .PHONY: lint
 
 install: ### install dependencies
 	@$(PIP) install --no-warn-script-location --no-cache-dir -r requirements.txt
-	@$(PIP) install --no-warn-script-location --no-cache-dir mypy-protobuf pylint-protobuf mypy pylint
-	@mypy --install-types --check-untyped-defs --non-interactive ./src
+	@./scripts/install_dev_dependency.sh $(PIP)
 .PHONY: install
 
 update: ### update dependencies
