@@ -1,9 +1,13 @@
 import logging
 import threading
 import time
+from datetime import datetime
 from queue import Queue
 
 import pika
+
+import fugle_entity as fe
+from pb import trade_pb2
 
 logging.getLogger("pika").setLevel(logging.WARNING)
 
@@ -56,3 +60,41 @@ class RabbitMQS:
         for _ in range(self.pool_size):
             self.pika_queue.put(self.create_pika())
         threading.Thread(target=self.send_heartbeat).start()
+
+    def send_order_arr(self, arr: list[fe.OrderResult]):
+        if len(arr) == 0:
+            return
+
+        result = trade_pb2.OrderStatusArr()
+        for order in arr:
+            if order.err_msg != "":
+                continue
+            if order.buy_sell == "B":
+                order_action = "Buy"
+            elif order.buy_sell == "S":
+                order_action = "Sell"
+            else:
+                continue
+
+            result.data.append(
+                trade_pb2.OrderStatus(
+                    code=order.stock_no,
+                    action=str(order_action),
+                    price=order.od_price,
+                    quantity=order.mat_qty,
+                    order_id=order.ord_no,
+                    status=order.covert_to_OrderStatus().value,
+                    order_time=datetime.strptime(
+                        f"{order.ord_date} {order.ord_time[:-3]}",
+                        "%Y%m%d %H%M%S",
+                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                )
+            )
+
+        p = self.pika_queue.get(block=True)
+        p.ch.basic_publish(
+            exchange=self.exchange,
+            routing_key="order_arr",
+            body=result.SerializeToString(),
+        )
+        self.pika_queue.put(p)

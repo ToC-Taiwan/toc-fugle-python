@@ -13,6 +13,7 @@ from logger import logger
 from pb import health_pb2, health_pb2_grpc, trade_pb2, trade_pb2_grpc
 from rabbitmq import RabbitMQS
 from simulator import Simulator
+from status import OrderStatus
 
 
 class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
@@ -48,7 +49,7 @@ class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
 
     def Terminate(self, request, _):
         threading.Thread(target=self.wait_and_terminate).start()
-        return google.protobuf.empty_pb2.Empty()  # pylint: disable=no-member
+        return google.protobuf.empty_pb2.Empty()
 
     def wait_and_terminate(self):
         time.sleep(3)
@@ -76,10 +77,16 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
                 request.price,
                 request.quantity,
             )
+
+        if result.ret_msg != "":
+            status = OrderStatus.Failed
+        else:
+            status = OrderStatus.Submitted
+
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
-            status="",
-            error="",
+            status=status.value,
+            error=result.ret_msg,
         )
 
     def SellStock(self, request, _):
@@ -96,10 +103,16 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
                 request.price,
                 request.quantity,
             )
+
+        if result.ret_msg != "":
+            status = OrderStatus.Failed
+        else:
+            status = OrderStatus.Submitted
+
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
-            status="",
-            error="",
+            status=status.value,
+            error=result.ret_msg,
         )
 
     def SellFirstStock(self, request, _):
@@ -116,10 +129,16 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
                 request.price,
                 request.quantity,
             )
+
+        if result.ret_msg != "":
+            status = OrderStatus.Failed
+        else:
+            status = OrderStatus.Submitted
+
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
-            status="",
-            error="",
+            status=status.value,
+            error=result.ret_msg,
         )
 
     def CancelStock(self, request, _):
@@ -129,17 +148,46 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
         else:
             result = self.simulator.cancel_stock(request.order_id)
 
+        if result.ret_msg != "":
+            status = OrderStatus.Failed
+        else:
+            status = OrderStatus.Cancelled
+
         return trade_pb2.TradeResult(
             order_id=request.order_id,
-            status="",
+            status=status.value,
             error=result.ret_msg,
         )
 
     def GetOrderStatusByID(self, request, _):
-        logger.info("GetOrderStatusByID")
+        result = None
+        if request.simulate is not True:
+            result = self.fugle.get_local_order_by_ord_no(request.order_id)
+        else:
+            result = self.simulator.get_local_order_by_ord_no(request.order_id)
+
+        if result is None:
+            return trade_pb2.TradeResult(
+                order_id=request.order_id,
+                status=OrderStatus.Unknow.value,
+                error="order not found",
+            )
+
+        return trade_pb2.TradeResult(
+            order_id=result.order_id,
+            status=result.covert_to_OrderStatus().value,
+            error=result.error,
+        )
 
     def GetLocalOrderStatusArr(self, request, _):
-        logger.info("GetLocalOrderStatusArr")
+        with self.send_order_lock:
+            self.rq.send_order_arr(self.fugle.get_local_order())
+            return google.protobuf.empty_pb2.Empty()
+
+    def GetSimulateOrderStatusArr(self, request, _):
+        with self.send_order_lock:
+            self.rq.send_order_arr(self.simulator.get_local_order())
+            return google.protobuf.empty_pb2.Empty()
 
 
 def serve(port: str, rq: RabbitMQS, f: Fugle):

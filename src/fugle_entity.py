@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+from status import OrderStatus
+
 
 @dataclass
 class Cert:
@@ -954,3 +956,7 @@ class OrderResult:  # pylint: disable=too-many-instance-attributes
         result["mat_qty_share"] = self.mat_qty_share
         result["cel_qty_share"] = self.cel_qty_share
         return result
+
+    def covert_to_OrderStatus(self) -> OrderStatus:
+        # TODO: need implement all condition
+        return OrderStatus.Unknow

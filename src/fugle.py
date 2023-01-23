@@ -1,3 +1,4 @@
+import os
 import threading
 from configparser import ConfigParser
 
@@ -18,7 +19,12 @@ class Fugle:
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
 
-        self.login()
+        try:
+            self.login()
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Login failed: %s", e)
+            os._exit(1)
+
         self.update_local_order()
 
         logger.info("Fugle init done")
