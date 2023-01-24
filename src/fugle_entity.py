@@ -961,7 +961,7 @@ class OrderResult:  # pylint: disable=too-many-instance-attributes
         # TODO: need implement all condition
         if self.celable == "2" and self.mat_qty == 0:
             return OrderStatus.Cancelled
-        return OrderStatus.Unknow
+        return OrderStatus.Submitted
 
     # Submitted = "Submitted"
     # Failed = "Failed"
