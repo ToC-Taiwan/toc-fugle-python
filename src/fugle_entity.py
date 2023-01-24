@@ -959,4 +959,12 @@ class OrderResult:  # pylint: disable=too-many-instance-attributes
 
     def covert_to_OrderStatus(self) -> OrderStatus:
         # TODO: need implement all condition
+        if self.celable == "2" and self.mat_qty == 0:
+            return OrderStatus.Cancelled
         return OrderStatus.Unknow
+
+    # Submitted = "Submitted"
+    # Failed = "Failed"
+    # Cancelled = "Cancelled"
+    # Filled = "Filled"
+    # PartFilled = "PartFilled"
