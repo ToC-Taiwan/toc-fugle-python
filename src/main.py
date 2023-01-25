@@ -37,6 +37,11 @@ def on_error(err):
     logger.error(err)
 
 
+@sdk.on("close")
+def on_close(err):
+    logger.error(err)
+
+
 @sdk.on("order")
 def on_order(_):
     fugle.update_local_order()
