@@ -10,13 +10,13 @@ import grpc
 
 from fugle import Fugle
 from logger import logger
-from pb import health_pb2, health_pb2_grpc, trade_pb2, trade_pb2_grpc
+from pb import basic_pb2, basic_pb2_grpc, trade_pb2, trade_pb2_grpc
 from rabbitmq import RabbitMQS
 from simulator import Simulator
 from status import OrderStatus
 
 
-class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
+class gRPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
     def __init__(self):
         self.beat_time = float()
         self.debug = False
@@ -32,7 +32,7 @@ class gRPCHealthCheck(health_pb2_grpc.HealthCheckInterfaceServicer):
                 self.debug = True
             else:
                 self.debug = False
-            yield health_pb2.BeatMessage(message=beat.message)
+            yield basic_pb2.BeatMessage(message=beat.message)
 
     def beat_timer(self):
         self.beat_time = datetime.now().timestamp()
@@ -192,7 +192,7 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
 
 def serve(port: str, rq: RabbitMQS, f: Fugle):
     # gRPC servicer
-    health_servicer = gRPCHealthCheck()
+    basic_servicer = gRPCBasic()
     trade_servicer = gRPCTrade(rq=rq, fugle=f)
     server = grpc.server(
         futures.ThreadPoolExecutor(),
@@ -208,7 +208,7 @@ def serve(port: str, rq: RabbitMQS, f: Fugle):
         ],
     )
 
-    health_pb2_grpc.add_HealthCheckInterfaceServicer_to_server(health_servicer, server)
+    basic_pb2_grpc.add_BasicDataInterfaceServicer_to_server(basic_servicer, server)
     trade_pb2_grpc.add_TradeInterfaceServicer_to_server(trade_servicer, server)
 
     server.add_insecure_port(f"[::]:{port}")

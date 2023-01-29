@@ -7,7 +7,7 @@ from queue import Queue
 import pika
 
 import fugle_entity as fe
-from pb import trade_pb2
+from pb import mq_pb2
 
 logging.getLogger("pika").setLevel(logging.WARNING)
 
@@ -33,6 +33,10 @@ class RabbitMQS:
         self.order_cb_lock = threading.Lock()
         # initial connections
         self.fill_pika_queue()
+
+        # self.main_pika = self.create_pika()
+        # self.sub("healthcheck")
+        # threading.Thread(target=self.consume).start()
 
     def send_heartbeat(self):
         while True:
@@ -65,7 +69,7 @@ class RabbitMQS:
         if len(arr) == 0:
             return
 
-        result = trade_pb2.OrderStatusArr()
+        result = mq_pb2.OrderStatusArr()
         for order in arr:
             if order.err_msg != "":
                 continue
@@ -77,7 +81,7 @@ class RabbitMQS:
                 continue
 
             result.data.append(
-                trade_pb2.OrderStatus(
+                mq_pb2.OrderStatus(
                     code=order.stock_no,
                     action=str(order_action),
                     price=order.od_price,
@@ -98,3 +102,23 @@ class RabbitMQS:
             body=result.SerializeToString(),
         )
         self.pika_queue.put(p)
+
+    # def sub(self, topic):
+    #     result = self.main_pika.ch.queue_declare(queue="", exclusive=True)
+    #     self.queue_name = result.method.queue
+    #     self.main_pika.ch.queue_bind(
+    #         exchange=self.exchange,
+    #         queue=self.queue_name,
+    #         routing_key=topic,
+    #     )
+
+    # def callback(self, _, method, __, body):
+    #     logger.info("%s receive message: %s", method.routing_key, body)
+
+    # def consume(self):
+    #     self.main_pika.ch.basic_consume(
+    #         queue=self.queue_name,
+    #         on_message_callback=self.callback,
+    #         auto_ack=True,
+    #     )
+    #     self.main_pika.ch.start_consuming()
