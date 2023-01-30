@@ -763,6 +763,10 @@ class PlaceOrderResponse:
     def fail_res(e: Exception) -> "PlaceOrderResponse":
         return PlaceOrderResponse("", "", "", "", "", str(e), "")
 
+    @staticmethod
+    def qty_too_large() -> "PlaceOrderResponse":
+        return PlaceOrderResponse("", "", "", "", "", "qty should be equal to 1", "")
+
 
 @dataclass
 class CancelOrderResponse:
@@ -958,13 +962,13 @@ class OrderResult:  # pylint: disable=too-many-instance-attributes
         return result
 
     def covert_to_OrderStatus(self) -> OrderStatus:
-        # TODO: need implement all condition
-        if self.celable == "2" and self.mat_qty == 0:
-            return OrderStatus.Cancelled
-        return OrderStatus.Submitted
-
-    # Submitted = "Submitted"
-    # Failed = "Failed"
-    # Cancelled = "Cancelled"
-    # Filled = "Filled"
-    # PartFilled = "PartFilled"
+        if self.err_msg != "":
+            return OrderStatus.Failed
+        if self.celable == "2":
+            if self.mat_qty == self.org_qty:
+                return OrderStatus.Filled
+            if self.cel_qty == self.org_qty:
+                return OrderStatus.Cancelled
+        else:
+            return OrderStatus.Submitted
+        return OrderStatus.Unknow

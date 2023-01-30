@@ -175,6 +175,9 @@ class Fugle:
         Returns:
             fe.PlaceOrderResponse: 委託回應
         """
+        if quantity > 1:
+            return fe.PlaceOrderResponse.qty_too_large()
+
         order = fo.OrderObject(
             price=price,
             stock_no=stock_num,
@@ -203,6 +206,9 @@ class Fugle:
         Returns:
             fe.PlaceOrderResponse: 委託回應
         """
+        if quantity > 1:
+            return fe.PlaceOrderResponse.qty_too_large()
+
         order = fo.OrderObject(
             price=price,
             stock_no=stock_num,
@@ -231,6 +237,9 @@ class Fugle:
         Returns:
             fe.PlaceOrderResponse: 委託回應
         """
+        if quantity > 1:
+            return fe.PlaceOrderResponse.qty_too_large()
+
         order = fo.OrderObject(
             price=price,
             stock_no=stock_num,
@@ -285,7 +294,9 @@ class Fugle:
             self.__order_map = {}
             try:
                 for order in self.get_order_results():
-                    self.__order_map[order.ord_no] = order
+                    if order.ord_no != "":
+                        self.__order_map[order.ord_no] = order
+
             except Exception as e:  # pylint: disable=broad-except
                 logger.error(e)
                 self.__order_map = cache
