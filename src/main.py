@@ -1,4 +1,6 @@
 """FUGLE PYTHON API FORWARDER"""
+
+
 import time
 
 from prometheus_client import start_http_server
@@ -32,13 +34,13 @@ sdk = fugle.get_sdk()
 
 
 @sdk.on("error")
-def on_error(err):
-    logger.error(err)
+def on_error(_):
+    pass
 
 
 @sdk.on("close")
-def on_close(err):
-    logger.error(err)
+def on_close(_):
+    pass
 
 
 @sdk.on("order")
