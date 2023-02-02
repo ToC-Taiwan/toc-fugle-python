@@ -21,8 +21,8 @@ class Fugle:
 
         try:
             self.login()
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error("Login failed: %s", e)
+        except Exception as error:
+            logger.error("Login failed: %s", error)
             os._exit(1)
 
         self.update_local_order()
@@ -40,14 +40,14 @@ class Fugle:
         """
         connect_websocket Connect to websocket
         """
-        threading.Thread(target=self._sdk.connect_websocket).start()
+        threading.Thread(target=self._sdk.connect_websocket, daemon=True).start()
 
     def reset_password(self) -> None:
         """
         reset_password Reset password, never use this function
         """
         self._sdk.reset_password()
-        raise Exception("Never use this function")
+        raise RuntimeError("Never use this function")
 
     def get_sdk(self) -> SDK:
         """
@@ -190,9 +190,9 @@ class Fugle:
         )
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error(e)
-            return fe.PlaceOrderResponse.fail_res(e)
+        except Exception as error:
+            logger.error(error)
+            return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
         """
@@ -221,9 +221,9 @@ class Fugle:
         )
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error(e)
-            return fe.PlaceOrderResponse.fail_res(e)
+        except Exception as error:
+            logger.error(error)
+            return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_first_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
         """
@@ -252,9 +252,9 @@ class Fugle:
         )
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error(e)
-            return fe.PlaceOrderResponse.fail_res(e)
+        except Exception as error:
+            logger.error(error)
+            return fe.PlaceOrderResponse.fail_res(error)
 
     def cancel_stock(self, order_no: str) -> fe.CancelOrderResponse:
         """
@@ -276,9 +276,9 @@ class Fugle:
             )
         try:
             return fe.CancelOrderResponse.from_dict(self._sdk.cancel_order(order.to_dict()))
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error(e)
-            return fe.CancelOrderResponse.fail_res(e)
+        except Exception as error:
+            logger.error(error)
+            return fe.CancelOrderResponse.fail_res(error)
 
     def get_local_order(self) -> list[fe.OrderResult]:
         with self.__order_map_lock:
@@ -297,6 +297,6 @@ class Fugle:
                     if order.ord_no != "":
                         self.__order_map[order.ord_no] = order
 
-            except Exception as e:  # pylint: disable=broad-except
-                logger.error(e)
+            except Exception as error:
+                logger.error(error)
                 self.__order_map = cache

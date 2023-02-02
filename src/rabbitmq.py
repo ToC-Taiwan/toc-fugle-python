@@ -13,9 +13,9 @@ logging.getLogger("pika").setLevel(logging.WARNING)
 
 
 class PikaCC:
-    def __init__(self, conn: pika.BlockingConnection, ch):
+    def __init__(self, conn: pika.BlockingConnection, channel):
         self.conn = conn
-        self.ch = ch
+        self.channel = channel
 
     def heartbeat(self):
         self.conn.process_data_events()
@@ -36,7 +36,7 @@ class RabbitMQS:
 
         # self.main_pika = self.create_pika()
         # self.sub("healthcheck")
-        # threading.Thread(target=self.consume).start()
+        # threading.Thread(target=self.consume, daemon=True).start()
 
     def send_heartbeat(self):
         while True:
@@ -45,25 +45,25 @@ class RabbitMQS:
             while True:
                 if count >= self.pool_size:
                     break
-                p = self.pika_queue.get(block=True)
-                p.heartbeat()
+                rabbit = self.pika_queue.get(block=True)
+                rabbit.heartbeat()
                 count += 1
-                self.pika_queue.put(p)
+                self.pika_queue.put(rabbit)
 
     def create_pika(self):
         conn = pika.BlockingConnection(self.parameters)
-        ch = conn.channel()
-        ch.exchange_declare(
+        channel = conn.channel()
+        channel.exchange_declare(
             exchange=self.exchange,
             exchange_type="direct",
             durable=True,
         )
-        return PikaCC(conn, ch)
+        return PikaCC(conn, channel)
 
     def fill_pika_queue(self):
         for _ in range(self.pool_size):
             self.pika_queue.put(self.create_pika())
-        threading.Thread(target=self.send_heartbeat).start()
+        threading.Thread(target=self.send_heartbeat, daemon=True).start()
 
     def send_order_arr(self, arr: list[fe.OrderResult]):
         if len(arr) == 0:
@@ -87,7 +87,7 @@ class RabbitMQS:
                     price=order.od_price,
                     quantity=order.mat_qty,
                     order_id=order.ord_no,
-                    status=order.covert_to_OrderStatus().value,
+                    status=order.covert_to_order_status().value,
                     order_time=datetime.strptime(
                         f"{order.ord_date} {order.ord_time[:-3]}",
                         "%Y%m%d %H%M%S",
@@ -95,18 +95,18 @@ class RabbitMQS:
                 )
             )
 
-        p = self.pika_queue.get(block=True)
-        p.ch.basic_publish(
+        rabbit = self.pika_queue.get(block=True)
+        rabbit.channel.basic_publish(
             exchange=self.exchange,
             routing_key="order_arr",
             body=result.SerializeToString(),
         )
-        self.pika_queue.put(p)
+        self.pika_queue.put(rabbit)
 
     # def sub(self, topic):
-    #     result = self.main_pika.ch.queue_declare(queue="", exclusive=True)
+    #     result = self.main_pika.channel.queue_declare(queue="", exclusive=True)
     #     self.queue_name = result.method.queue
-    #     self.main_pika.ch.queue_bind(
+    #     self.main_pika.channel.queue_bind(
     #         exchange=self.exchange,
     #         queue=self.queue_name,
     #         routing_key=topic,
@@ -116,9 +116,9 @@ class RabbitMQS:
     #     logger.info("%s receive message: %s", method.routing_key, body)
 
     # def consume(self):
-    #     self.main_pika.ch.basic_consume(
+    #     self.main_pika.channel.basic_consume(
     #         queue=self.queue_name,
     #         on_message_callback=self.callback,
     #         auto_ack=True,
     #     )
-    #     self.main_pika.ch.start_consuming()
+    #     self.main_pika.channel.start_consuming()

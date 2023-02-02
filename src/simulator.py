@@ -63,6 +63,7 @@ class Simulator:
         threading.Thread(
             target=self.finish_simulation_order,
             args=(sim_order, random.randint(2, 10)),
+            daemon=True,
         ).start()
 
         return fe.PlaceOrderResponse(
@@ -111,6 +112,7 @@ class Simulator:
         threading.Thread(
             target=self.finish_simulation_order,
             args=(sim_order, random.randint(2, 10)),
+            daemon=True,
         ).start()
 
         return fe.PlaceOrderResponse(
@@ -159,6 +161,7 @@ class Simulator:
         threading.Thread(
             target=self.finish_simulation_order,
             args=(sim_order, random.randint(2, 10)),
+            daemon=True,
         ).start()
 
         return fe.PlaceOrderResponse(

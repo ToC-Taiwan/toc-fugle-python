@@ -1,5 +1,4 @@
 """FUGLE PYTHON API FORWARDER"""
-import os
 import time
 
 from prometheus_client import start_http_server
@@ -22,7 +21,7 @@ init_schedule_job()
 rc = RabbitMQSetting()
 rc.reset_rabbitmq_exchange()
 
-rq = RabbitMQS(
+rabbit = RabbitMQS(
     str(env.rabbitmq_url),
     str(env.rabbitmq_exchange),
     128,
@@ -55,12 +54,12 @@ def on_dealt(_):
 fugle.connect_websocket()
 
 try:
-    serve(port=str(env.grpc_port), rq=rq, f=fugle)
+    serve(port=str(env.grpc_port), rabbit=rabbit, fugle=fugle)
 
-except RuntimeError:
+except RuntimeError as exc:
     logger.error("runtime error, retry after 30 seconds")
-    time.sleep(10)
-    os._exit(1)
+    time.sleep(30)
+    raise SystemExit from exc
 
-except KeyboardInterrupt:
-    os._exit(1)
+except KeyboardInterrupt as exc:
+    raise SystemExit from exc

@@ -21,7 +21,7 @@ class Cert:
     }
     """
 
-    cn: str
+    cert_name: str
     is_valid: bool
     not_after: int
     serial: str
@@ -138,7 +138,7 @@ class TradeStatus:
 
 
 @dataclass
-class FillDetail:  # pylint: disable=too-many-instance-attributes
+class FillDetail:
     """
     db_fee: 融券手續費
     fee: 手續費 (string)
@@ -243,7 +243,7 @@ class FillDetail:  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass
-class FillOrder:  # pylint: disable=too-many-instance-attributes
+class FillOrder:
     """
     cost: 已實現損益成本小計
     price_avg: 成交均價 (string)
@@ -348,7 +348,7 @@ class FillOrder:  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass
-class InventoryDetail:  # pylint: disable=too-many-instance-attributes
+class InventoryDetail:
     """
     cost_r: 已分攤成本
     fee: 手續費(由原始資料分攤)
@@ -461,7 +461,7 @@ class InventoryDetail:  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass
-class Inventory:  # pylint: disable=too-many-instance-attributes
+class Inventory:
     """
     ap_code: 盤別，僅盤中零股會有值 (string)
     cost_qty: 成本股數
@@ -760,8 +760,8 @@ class PlaceOrderResponse:
         return PlaceOrderResponse(_ord_date, _ord_time, _ord_type, _ord_no, _ret_code, _ret_msg, _work_date)
 
     @staticmethod
-    def fail_res(e: Exception) -> "PlaceOrderResponse":
-        return PlaceOrderResponse("", "", "", "", "", str(e), "")
+    def fail_res(error: Exception) -> "PlaceOrderResponse":
+        return PlaceOrderResponse("", "", "", "", "", str(error), "")
 
     @staticmethod
     def qty_too_large() -> "PlaceOrderResponse":
@@ -800,12 +800,12 @@ class CancelOrderResponse:
         return CancelOrderResponse(_ret_code, _ret_msg, _ord_date, _ord_time)
 
     @staticmethod
-    def fail_res(e: Exception) -> "CancelOrderResponse":
-        return CancelOrderResponse("", str(e), "", "")
+    def fail_res(error: Exception) -> "CancelOrderResponse":
+        return CancelOrderResponse("", str(error), "", "")
 
 
 @dataclass
-class OrderResult:  # pylint: disable=too-many-instance-attributes
+class OrderResult:
     """
     ap_code: 盤別 (APCode enum)
     avg_price: 成交均價 (number)
@@ -961,14 +961,14 @@ class OrderResult:  # pylint: disable=too-many-instance-attributes
         result["cel_qty_share"] = self.cel_qty_share
         return result
 
-    def covert_to_OrderStatus(self) -> OrderStatus:
+    def covert_to_order_status(self) -> OrderStatus:
         if self.err_msg != "":
-            return OrderStatus.Failed
+            return OrderStatus.FAILED
         if self.celable == "2":
             if self.mat_qty == self.org_qty:
-                return OrderStatus.Filled
+                return OrderStatus.FILLED
             if self.cel_qty == self.org_qty:
-                return OrderStatus.Cancelled
+                return OrderStatus.CANCELLED
         else:
-            return OrderStatus.Submitted
-        return OrderStatus.Unknow
+            return OrderStatus.SUBMITTED
+        return OrderStatus.UNKNOW

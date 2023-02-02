@@ -1,4 +1,3 @@
-import os
 import threading
 import time
 from concurrent import futures
@@ -16,15 +15,15 @@ from simulator import Simulator
 from status import OrderStatus
 
 
-class gRPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
+class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
     def __init__(self):
         self.beat_time = float()
         self.debug = False
+        self.beat_queue: Queue = Queue()
 
     def Heartbeat(self, request_iterator, _):
         logger.info("new gRPC client connected")
-        self.beat_queue: Queue = Queue()
-        threading.Thread(target=self.beat_timer).start()
+        threading.Thread(target=self.beat_timer, daemon=True).start()
         for beat in request_iterator:
             self.beat_time = datetime.now().timestamp()
             self.beat_queue.put(beat.message)
@@ -41,24 +40,24 @@ class gRPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
                 logger.info("grpc client disconnected")
                 if self.debug is True:
                     return
-                os._exit(1)
+                raise SystemExit
             if self.beat_queue.empty():
                 time.sleep(1)
                 continue
             self.beat_queue.get()
 
     def Terminate(self, request, _):
-        threading.Thread(target=self.wait_and_terminate).start()
+        threading.Thread(target=self.wait_and_terminate, daemon=True).start()
         return google.protobuf.empty_pb2.Empty()
 
     def wait_and_terminate(self):
         time.sleep(3)
-        os._exit(1)
+        raise SystemExit
 
 
-class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
-    def __init__(self, rq: RabbitMQS, fugle: Fugle):
-        self.rq = rq
+class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
+    def __init__(self, rabbit: RabbitMQS, fugle: Fugle):
+        self.rabbit = rabbit
         self.fugle = fugle
         self.send_order_lock = threading.Lock()
         self.simulator = Simulator()
@@ -79,9 +78,9 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
             )
 
         if result.ret_msg != "":
-            status = OrderStatus.Failed
+            status = OrderStatus.FAILED
         else:
-            status = OrderStatus.Submitted
+            status = OrderStatus.SUBMITTED
 
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
@@ -105,9 +104,9 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
             )
 
         if result.ret_msg != "":
-            status = OrderStatus.Failed
+            status = OrderStatus.FAILED
         else:
-            status = OrderStatus.Submitted
+            status = OrderStatus.SUBMITTED
 
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
@@ -131,9 +130,9 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
             )
 
         if result.ret_msg != "":
-            status = OrderStatus.Failed
+            status = OrderStatus.FAILED
         else:
-            status = OrderStatus.Submitted
+            status = OrderStatus.SUBMITTED
 
         return trade_pb2.TradeResult(
             order_id=result.ord_no,
@@ -149,9 +148,9 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
             result = self.simulator.cancel_stock(request.order_id)
 
         if result.ret_msg != "":
-            status = OrderStatus.Failed
+            status = OrderStatus.FAILED
         else:
-            status = OrderStatus.Cancelled
+            status = OrderStatus.CANCELLED
 
         return trade_pb2.TradeResult(
             order_id=request.order_id,
@@ -169,31 +168,31 @@ class gRPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
         if result is None:
             return trade_pb2.TradeResult(
                 order_id=request.order_id,
-                status=OrderStatus.Unknow.value,
+                status=OrderStatus.UNKNOW.value,
                 error="order not found",
             )
 
         return trade_pb2.TradeResult(
             order_id=result.order_id,
-            status=result.covert_to_OrderStatus().value,
+            status=result.covert_to_order_status().value,
             error=result.error,
         )
 
     def GetLocalOrderStatusArr(self, request, _):
         with self.send_order_lock:
-            self.rq.send_order_arr(self.fugle.get_local_order())
+            self.rabbit.send_order_arr(self.fugle.get_local_order())
             return google.protobuf.empty_pb2.Empty()
 
     def GetSimulateOrderStatusArr(self, request, _):
         with self.send_order_lock:
-            self.rq.send_order_arr(self.simulator.get_local_order())
+            self.rabbit.send_order_arr(self.simulator.get_local_order())
             return google.protobuf.empty_pb2.Empty()
 
 
-def serve(port: str, rq: RabbitMQS, f: Fugle):
+def serve(port: str, rabbit: RabbitMQS, fugle: Fugle):
     # gRPC servicer
-    basic_servicer = gRPCBasic()
-    trade_servicer = gRPCTrade(rq=rq, fugle=f)
+    basic_servicer = RPCBasic()
+    trade_servicer = RPCTrade(rabbit=rabbit, fugle=fugle)
     server = grpc.server(
         futures.ThreadPoolExecutor(),
         options=[
