@@ -23,7 +23,7 @@ class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
         self.beat_queue: Queue = Queue()
 
     def Heartbeat(self, request_iterator, _):
-        logger.info("new gRPC client connected")
+        logger.info("new fugle gRPC client connected")
         threading.Thread(target=self.beat_timer, daemon=True).start()
         for beat in request_iterator:
             self.beat_time = datetime.now().timestamp()
@@ -38,7 +38,7 @@ class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
         self.beat_time = datetime.now().timestamp()
         while True:
             if datetime.now().timestamp() > self.beat_time + 10:
-                logger.info("grpc client disconnected")
+                logger.info("fugle grpc client disconnected")
                 if self.debug is True:
                     return
                 os._exit(0)

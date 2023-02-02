@@ -1,6 +1,7 @@
 import os
 import threading
 from configparser import ConfigParser
+from datetime import datetime
 
 import fugle_trade.constant as fc
 import fugle_trade.order as fo
@@ -298,5 +299,18 @@ class Fugle:
                         self.__order_map[order.ord_no] = order
 
             except Exception as error:
-                logger.error(error)
                 self.__order_map = cache
+                if self.is_market_open():
+                    logger.error(error)
+
+    def is_market_open(self) -> bool:
+        """
+        is_market_open 是否開市
+
+        Returns:
+            bool: 是否開市
+        """
+        now = datetime.now()
+        if now.hour < 8 or now.hour > 14:
+            return False
+        return True
