@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from concurrent import futures
@@ -40,7 +41,7 @@ class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
                 logger.info("grpc client disconnected")
                 if self.debug is True:
                     return
-                raise SystemExit
+                os._exit(0)
             if self.beat_queue.empty():
                 time.sleep(1)
                 continue
@@ -52,7 +53,7 @@ class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
 
     def wait_and_terminate(self):
         time.sleep(3)
-        raise SystemExit
+        os._exit(0)
 
 
 class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
