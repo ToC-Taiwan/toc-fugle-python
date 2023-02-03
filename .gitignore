@@ -147,3 +147,6 @@ logs/*
 protobuf
 .DS_Store
 config.ini
+bin
+tmp
+pyvenv.cfg

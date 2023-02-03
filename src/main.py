@@ -15,7 +15,7 @@ from rabbitmq import RabbitMQS
 from rabbitmq_setting import RabbitMQSetting
 
 env = RequiredEnv()
-start_http_server(8887)
+start_http_server(8888)
 
 # add schedule to exit the program
 init_schedule_job()

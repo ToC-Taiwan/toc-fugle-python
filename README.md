@@ -42,6 +42,23 @@ make
 make update
 ```
 
+## Local RabbitMQ
+
+```sh
+docker stop toc-rabbitmq
+docker system prune --volumes -f
+docker rmi -f $(docker images -a -q)
+
+docker run -d \
+  --restart always \
+  --name toc-rabbitmq \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  -e RABBITMQ_DEFAULT_USER=admin \
+  -e RABBITMQ_DEFAULT_PASS=password \
+  rabbitmq:3.11.5-management
+```
+
 ## Authors
 
 - [**Tim Hsu**](https://github.com/Chindada)
