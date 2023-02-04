@@ -300,7 +300,7 @@ class Fugle:
 
             except Exception as error:
                 self.__order_map = cache
-                if self.is_market_open():
+                if self.is_market_open() is True:
                     logger.error(error)
 
     def is_market_open(self) -> bool:
@@ -311,6 +311,6 @@ class Fugle:
             bool: 是否開市
         """
         now = datetime.now()
-        if now.hour < 8 or now.hour > 14:
+        if now.hour < 8 or now.hour > 15:
             return False
         return True
