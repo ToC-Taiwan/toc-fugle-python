@@ -303,6 +303,11 @@ class Fugle:
                 if self.is_market_open() is True:
                     logger.error(error)
 
+    def cancel_all_stock(self):
+        for order in self.get_local_order():
+            if order.celable == "1":
+                self.cancel_stock(order.ord_no)
+
     def is_market_open(self) -> bool:
         """
         is_market_open 是否開市
