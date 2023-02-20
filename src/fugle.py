@@ -27,9 +27,7 @@ class Fugle:
             os._exit(1)
 
         self.update_local_order()
-
         logger.info("fugle init done")
-        logger.info("is trading day: %s", self.get_market_status().is_trading_day)
 
     def login(self) -> None:
         """
