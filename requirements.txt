@@ -5,8 +5,8 @@ cffi==1.15.1
 charset-normalizer==3.0.1
 fugle-trade==0.4.0
 fugle-trade-core==0.4.1
-grpcio==1.51.1
-grpcio-tools==1.51.1
+grpcio==1.51.3
+grpcio-tools==1.51.3
 idna==3.4
 importlib-metadata==6.0.0
 Jinja2==3.1.2
