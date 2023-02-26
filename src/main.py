@@ -6,7 +6,7 @@ import time
 
 from prometheus_client import start_http_server
 
-from cron import init_schedule_job
+# from cron import init_schedule_job
 from env import RequiredEnv
 from fugle import Fugle
 from grpcsrv import serve
@@ -18,7 +18,7 @@ env = RequiredEnv()
 start_http_server(8888)
 
 # add schedule to exit the program
-init_schedule_job()
+# init_schedule_job()
 
 # start rabbitmq container first
 rc = RabbitMQSetting()
