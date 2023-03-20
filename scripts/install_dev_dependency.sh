@@ -6,7 +6,6 @@ $pip install -U \
   --no-warn-script-location \
   --no-cache-dir \
   mypy-protobuf \
-  pre-commit \
   pylint-protobuf \
   black \
   mypy \
