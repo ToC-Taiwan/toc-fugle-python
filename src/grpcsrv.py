@@ -184,28 +184,31 @@ class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
             return google.protobuf.empty_pb2.Empty()
 
 
-def serve(port: str, rabbit: RabbitMQS, fugle: Fugle):
-    # gRPC servicer
-    basic_servicer = RPCBasic()
-    trade_servicer = RPCTrade(rabbit=rabbit, fugle=fugle)
-    server = grpc.server(
-        futures.ThreadPoolExecutor(),
-        options=[
-            (
-                "grpc.max_send_message_length",
-                1024 * 1024 * 1024,
-            ),
-            (
-                "grpc.max_receive_message_length",
-                1024 * 1024 * 1024,
-            ),
-        ],
-    )
+class GRPCServer:
+    def __init__(self, rabbit: RabbitMQS, fugle: Fugle):
+        basic_servicer = RPCBasic()
+        trade_servicer = RPCTrade(rabbit=rabbit, fugle=fugle)
+        server = grpc.server(
+            futures.ThreadPoolExecutor(),
+            options=[
+                (
+                    "grpc.max_send_message_length",
+                    1024 * 1024 * 1024,
+                ),
+                (
+                    "grpc.max_receive_message_length",
+                    1024 * 1024 * 1024,
+                ),
+            ],
+        )
 
-    basic_pb2_grpc.add_BasicDataInterfaceServicer_to_server(basic_servicer, server)
-    trade_pb2_grpc.add_TradeInterfaceServicer_to_server(trade_servicer, server)
+        basic_pb2_grpc.add_BasicDataInterfaceServicer_to_server(basic_servicer, server)
+        trade_pb2_grpc.add_TradeInterfaceServicer_to_server(trade_servicer, server)
 
-    server.add_insecure_port(f"[::]:{port}")
-    server.start()
-    logger.info("gRPC Server started at port %s", port)
-    server.wait_for_termination()
+        self.server = server
+
+    def serve(self, port: str):
+        self.server.add_insecure_port(f"[::]:{port}")
+        self.server.start()
+        logger.info("gRPC Server started at port %s", port)
+        self.server.wait_for_termination()
