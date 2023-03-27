@@ -1,8 +1,6 @@
-FROM python:3.10.10-slim
+FROM python:3.11.2-slim
 
 USER root
-
-RUN apt update && apt install -y make
 
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
@@ -13,6 +11,5 @@ COPY data /toc-fugle-python/data
 COPY logs /toc-fugle-python/logs
 COPY scripts /toc-fugle-python/scripts
 COPY src /toc-fugle-python/src
-COPY Makefile /toc-fugle-python/Makefile
 
 ENTRYPOINT ["/toc-fugle-python/scripts/docker-entrypoint.sh"]
