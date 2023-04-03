@@ -2,6 +2,7 @@ import os
 import threading
 import time
 from concurrent import futures
+from datetime import datetime
 
 import google.protobuf.empty_pb2
 import grpc
@@ -182,6 +183,28 @@ class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
         with self.send_order_lock:
             self.rabbit.send_order_arr(self.simulator.get_local_order())
             return google.protobuf.empty_pb2.Empty()
+
+    def GetAccountBalance(self, request, _):
+        balance = self.fugle.get_balance()
+        return trade_pb2.AccountBalance(
+            date=datetime.strftime(datetime.fromtimestamp(balance.updated_at), "%Y-%m-%d %H:%M:%S"),
+            balance=float(balance.available_balance),
+        )
+
+    def GetSettlement(self, request, _):
+        result = trade_pb2.SettlementList()
+        settlements = self.fugle.get_settlements()
+        for settle in settlements:
+            result.settlement.append(
+                trade_pb2.Settlement(
+                    date=datetime.strftime(datetime.strptime(settle.c_date, "%Y%m%d"), "%Y-%m-%d %H:%M:%S"),
+                    amount=float(settle.price),
+                )
+            )
+        return result
+
+    def GetMargin(self, request, _):
+        return trade_pb2.Margin()
 
 
 class GRPCServer:
