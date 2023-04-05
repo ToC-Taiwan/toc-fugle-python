@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 from configparser import ConfigParser
 from datetime import datetime
 
@@ -73,7 +74,12 @@ class Fugle:
         Returns:
             fe.Balance: 銀行餘額相關資訊
         """
-        return fe.Balance.from_dict(self._sdk.get_balance())
+        try:
+            return fe.Balance.from_dict(self._sdk.get_balance())
+        except Exception as error:
+            logger.error("get_balance failed: %s", error)
+            time.sleep(5)
+            return self.get_balance()
 
     def get_market_status(self) -> fe.MarketStatus:
         """
