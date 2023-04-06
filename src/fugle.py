@@ -1,6 +1,5 @@
 import os
 import threading
-import time
 from configparser import ConfigParser
 from datetime import datetime
 
@@ -78,8 +77,13 @@ class Fugle:
             return fe.Balance.from_dict(self._sdk.get_balance())
         except Exception as error:
             logger.error("get_balance failed: %s", error)
-            time.sleep(5)
-            return self.get_balance()
+            return fe.Balance(
+                available_balance=0,
+                exchange_balance=0,
+                stock_pre_save_amount=0,
+                is_latest_data=False,
+                updated_at=0,
+            )
 
     def get_market_status(self) -> fe.MarketStatus:
         """
