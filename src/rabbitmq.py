@@ -62,6 +62,8 @@ class RabbitMQS:
             on_message_callback=self.terminate,
             auto_ack=True,
         )
+
+        self.pika_queue.put(PikaCC(connection, channel))
         channel.start_consuming()
 
     def terminate(self, channel, method, properties, body):  # pylint: disable=unused-argument
