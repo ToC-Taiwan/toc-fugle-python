@@ -66,7 +66,7 @@ class Fugle:
         """
         return fe.Cert.from_dict(self._sdk.certinfo())
 
-    def get_balance(self) -> fe.Balance:
+    def get_balance(self) -> fe.Balance | None:
         """
         取得銀行餘額相關資訊。 (每 180 秒可查詢一次)
 
@@ -75,15 +75,8 @@ class Fugle:
         """
         try:
             return fe.Balance.from_dict(self._sdk.get_balance())
-        except Exception as error:
-            logger.error("get_balance failed: %s", error)
-            return fe.Balance(
-                available_balance=0,
-                exchange_balance=0,
-                stock_pre_save_amount=0,
-                is_latest_data=False,
-                updated_at=0,
-            )
+        except Exception:
+            return None
 
     def get_market_status(self) -> fe.MarketStatus:
         """
@@ -142,17 +135,20 @@ class Fugle:
             arr.append(fe.Inventory.from_dict(data))
         return arr
 
-    def get_settlements(self) -> list[fe.Settlement]:
+    def get_settlements(self) -> list[fe.Settlement] | list:
         """
         取得交割款資訊
 
         Returns:
             list[fe.Settlement]: 交割款資訊
         """
-        arr: list[fe.Settlement] = []
-        for data in self._sdk.get_settlements():
-            arr.append(fe.Settlement.from_dict(data))
-        return arr
+        try:
+            arr: list[fe.Settlement] = []
+            for data in self._sdk.get_settlements():
+                arr.append(fe.Settlement.from_dict(data))
+            return arr
+        except Exception:
+            return []
 
     def get_key_info(self) -> fe.KeyInfo:
         """
@@ -200,7 +196,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error(error)
+            logger.error("buy_stock error: %s", error)
             return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
@@ -231,7 +227,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error(error)
+            logger.error("sell_stock error: %s", error)
             return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_first_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
@@ -262,7 +258,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error(error)
+            logger.error("sell_first_stock error: %s", error)
             return fe.PlaceOrderResponse.fail_res(error)
 
     def cancel_stock(self, order_no: str) -> fe.CancelOrderResponse:
@@ -286,7 +282,7 @@ class Fugle:
         try:
             return fe.CancelOrderResponse.from_dict(self._sdk.cancel_order(order.to_dict()))
         except Exception as error:
-            logger.error(error)
+            logger.error("cancel_stock error: %s", error)
             return fe.CancelOrderResponse.fail_res(error)
 
     def get_local_order(self) -> list[fe.OrderResult]:
@@ -309,7 +305,7 @@ class Fugle:
             except Exception as error:
                 self.__order_map = cache
                 if self.is_market_open() is True:
-                    logger.error(error)
+                    logger.error("update_local_order error: %s", error)
 
     def cancel_all_stock(self):
         for order in self.get_local_order():

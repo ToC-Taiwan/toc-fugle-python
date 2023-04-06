@@ -186,6 +186,11 @@ class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
 
     def GetAccountBalance(self, request, _):
         balance = self.fugle.get_balance()
+        if balance is None:
+            return trade_pb2.AccountBalance(
+                date="",
+                balance=0,
+            )
         return trade_pb2.AccountBalance(
             date=datetime.strftime(datetime.fromtimestamp(balance.updated_at), "%Y-%m-%d %H:%M:%S"),
             balance=float(balance.available_balance),
