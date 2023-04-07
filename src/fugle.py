@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 from configparser import ConfigParser
@@ -9,6 +10,8 @@ from fugle_trade.sdk import SDK
 
 import fugle_entity as fe
 from logger import logger
+
+logging.getLogger("websocket").propagate = False
 
 
 class Fugle:

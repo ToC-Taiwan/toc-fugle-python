@@ -44,12 +44,12 @@ if __name__ == "__main__":
     sdk = fugle.get_sdk()
 
     @sdk.on("error")
-    def on_error(_):
-        pass
+    def on_error(err):
+        logger.error("on_error: %s", err)
 
     @sdk.on("close")
-    def on_close(_):
-        pass
+    def on_close(err):
+        logger.error("on_close: %s", err)
 
     @sdk.on("order")
     def on_order(_):
