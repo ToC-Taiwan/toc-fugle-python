@@ -211,6 +211,22 @@ class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
     def GetMargin(self, request, _):
         return trade_pb2.Margin()
 
+    def GetFuturePosition(self, request, _):
+        return trade_pb2.FuturePositionArr()
+
+    def GetStockPosition(self, request, _):
+        response = trade_pb2.StockPositionArr()
+        result = self.fugle.get_inventories()
+        for pos in result:
+            response.position_arr.append(
+                trade_pb2.StockPosition(
+                    code=pos.stk_no,
+                    quantity=int(int(pos.cost_qty) / 1000),
+                    price=float(pos.price_avg),
+                )
+            )
+        return response
+
 
 class GRPCServer:
     def __init__(self, rabbit: RabbitMQS, fugle: Fugle):
