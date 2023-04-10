@@ -22,6 +22,7 @@ class Fugle:
         self._sdk = SDK(config)
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
+        self.__get_inventory_time = 0.0
 
         try:
             self.login()
@@ -133,10 +134,18 @@ class Fugle:
         Returns:
             list[fe.Inventory]: 庫存明細
         """
-        arr: list[fe.Inventory] = []
-        for data in self._sdk.get_inventories():
-            arr.append(fe.Inventory.from_dict(data))
-        return arr
+        if datetime.now().timestamp() - self.__get_inventory_time < 10:
+            return []
+
+        try:
+            arr: list[fe.Inventory] = []
+            for data in self._sdk.get_inventories():
+                arr.append(fe.Inventory.from_dict(data))
+            self.__get_inventory_time = datetime.now().timestamp()
+            return arr
+        except Exception as error:
+            logger.error("get_inventories failed: %s", error)
+            return []
 
     def get_settlements(self) -> list[fe.Settlement] | list:
         """
