@@ -1,4 +1,4 @@
-name: Workflow
+name: ToC Fugle Python CI
 
 on:
     workflow_dispatch:

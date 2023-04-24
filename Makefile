@@ -5,7 +5,7 @@ PWD=$(shell pwd)
 PBPATH=$(PWD)/src/pb
 
 run: check config ### run
-	@PYTHON_KEYRING_BACKEND=keyrings.cryptfile.cryptfile.CryptFileKeyring PYTHONPATH=$(PBPATH) $(PYTHON) -BOO ./src/main.py
+	@PYTHON_KEYRING_BACKEND=keyrings.cryptfile.cryptfile.CryptFileKeyring PYTHONPATH=$(PBPATH) $(PYTHON) -BO ./src/main.py
 .PHONY: run
 
 lint: check ### lint
@@ -29,7 +29,7 @@ proto: check ### compile proto
 .PHONY: proto
 
 config: check ### config
-	@PYTHONPATH=$(PBPATH) $(PYTHON) -BOO ./src/config.py
+	@PYTHONPATH=$(PBPATH) $(PYTHON) -BO ./src/config.py
 .PHONY: config
 
 check: ## check environment
