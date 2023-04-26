@@ -36,7 +36,7 @@ class Fugle:
         """
         try:
             if self.__login_times - 1 > 5:
-                logger.error("login over 5 times, exit")
+                logger.error("re-login over 5 times, exit")
                 os._exit(1)
 
             logger.info("login to fugle")
@@ -59,8 +59,8 @@ class Fugle:
         """
         code = error.split(":")[0].strip()
         if code == "A00001":
-            logger.warning("try to login again(%d)", self.__login_times - 1)
             self.login()
+            logger.warning("re-login (%d)", self.__login_times - 1)
         else:
             logger.error("%s error: %s", method_name, error)
 
