@@ -1,3 +1,4 @@
+import inspect
 import logging
 import os
 import threading
@@ -23,13 +24,9 @@ class Fugle:
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
         self.__get_inventory_time = 0.0
+        self.__login_times = 0
 
-        try:
-            self.login()
-        except Exception as error:
-            logger.error("Login failed: %s", error)
-            os._exit(1)
-
+        self.login()
         self.update_local_order()
         logger.info("fugle init done")
 
@@ -37,7 +34,35 @@ class Fugle:
         """
         login 登入
         """
-        self._sdk.login()
+        try:
+            if self.__login_times - 1 > 5:
+                logger.error("login over 5 times, exit")
+                os._exit(1)
+
+            logger.info("login to fugle")
+            self.__login_times += 1
+            self._sdk.login()
+
+        except Exception as error:
+            logger.error("login failed: %s", error)
+            os._exit(1)
+
+    def current_method_name(self):
+        """
+        current_method_name Get current method name
+        """
+        return inspect.currentframe().f_back.f_code.co_name
+
+    def process_error(self, error: str, method_name: str):
+        """
+        process_error Process error
+        """
+        code = error.split(":")[0].strip()
+        if code == "A00001":
+            logger.warning("try to login again(%d)", self.__login_times - 1)
+            self.login()
+        else:
+            logger.error("%s error: %s", method_name, error)
 
     def connect_websocket(self):
         """
@@ -144,7 +169,7 @@ class Fugle:
             self.__get_inventory_time = datetime.now().timestamp()
             return arr
         except Exception as error:
-            logger.error("get_inventories failed: %s", error)
+            self.process_error(str(error), self.current_method_name())
             return []
 
     def get_settlements(self) -> list[fe.Settlement] | list:
@@ -208,7 +233,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error("buy_stock error: %s", error)
+            self.process_error(str(error), self.current_method_name())
             return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
@@ -239,7 +264,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error("sell_stock error: %s", error)
+            self.process_error(str(error), self.current_method_name())
             return fe.PlaceOrderResponse.fail_res(error)
 
     def sell_first_stock(self, stock_num: str, price: float, quantity: int) -> fe.PlaceOrderResponse:
@@ -270,7 +295,7 @@ class Fugle:
         try:
             return fe.PlaceOrderResponse.from_dict(self._sdk.place_order(order))
         except Exception as error:
-            logger.error("sell_first_stock error: %s", error)
+            self.process_error(str(error), self.current_method_name())
             return fe.PlaceOrderResponse.fail_res(error)
 
     def cancel_stock(self, order_no: str) -> fe.CancelOrderResponse:
@@ -294,7 +319,7 @@ class Fugle:
         try:
             return fe.CancelOrderResponse.from_dict(self._sdk.cancel_order(order.to_dict()))
         except Exception as error:
-            logger.error("cancel_stock error: %s", error)
+            self.process_error(str(error), self.current_method_name())
             return fe.CancelOrderResponse.fail_res(error)
 
     def get_local_order(self) -> list[fe.OrderResult]:
@@ -317,7 +342,7 @@ class Fugle:
             except Exception as error:
                 self.__order_map = cache
                 if self.is_market_open() is True:
-                    logger.error("update_local_order error: %s", error)
+                    self.process_error(str(error), self.current_method_name())
 
     def cancel_all_stock(self):
         for order in self.get_local_order():
