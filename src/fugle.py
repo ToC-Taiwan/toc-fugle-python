@@ -15,6 +15,9 @@ from logger import logger
 logging.getLogger("websocket").propagate = False
 
 
+MAX_LOGIN_RETRY = 3
+
+
 class Fugle:
     def __init__(self):
         config = ConfigParser()
@@ -35,12 +38,12 @@ class Fugle:
         login 登入
         """
         try:
-            if self.__login_times - 1 > 5:
-                logger.error("re-login over 5 times, exit")
+            if self.__login_times - 1 > MAX_LOGIN_RETRY:
+                logger.error("re-login over %d times, exit", MAX_LOGIN_RETRY)
                 os._exit(1)
             self.__login_times += 1
-            if self.__login_times >= 1:
-                logger.warning("try re-login %d time", self.__login_times - 1)
+            if self.__login_times > 1:
+                logger.warning("try re-login %d of %d", self.__login_times - 1, MAX_LOGIN_RETRY)
             self._sdk.login()
             logger.info("login to fugle")
 
