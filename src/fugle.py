@@ -58,6 +58,8 @@ class Fugle:
         process_error Process error
         """
         code = error.split(":")[0].strip()
+        if code == "000997":
+            return
         if code == "A00001":
             self.login()
             logger.warning("re-login (%d)", self.__login_times - 1)
