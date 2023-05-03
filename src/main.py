@@ -48,8 +48,13 @@ if __name__ == "__main__":
         logger.error("on_error: %s", err)
 
     @sdk.on("close")
-    def on_close(err):
-        logger.error("on_close: %s", err)
+    def on_close(ws, close_status_code, close_msg):
+        logger.error("ws type: %s", type(ws))
+        logger.error("close_status_code type: %s", type(close_status_code))
+        logger.error("close_msg type: %s", type(close_msg))
+        logger.error(ws)
+        logger.error(close_status_code)
+        logger.error(close_msg)
 
     @sdk.on("order")
     def on_order(_):
