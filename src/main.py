@@ -48,11 +48,11 @@ if __name__ == "__main__":
         logger.error("on_error: %s", err)
 
     @sdk.on("close")
-    def on_close(ws, close_status_code, close_msg):
-        logger.error("ws type: %s", type(ws))
+    def on_close(websocket, close_status_code, close_msg):
+        logger.error("ws type: %s", type(websocket))
         logger.error("close_status_code type: %s", type(close_status_code))
         logger.error("close_msg type: %s", type(close_msg))
-        logger.error(ws)
+        logger.error(websocket)
         logger.error(close_status_code)
         logger.error(close_msg)
 
