@@ -41,33 +41,8 @@ if __name__ == "__main__":
     )
 
     fugle = Fugle()
-    sdk = fugle.get_sdk()
-
-    @sdk.on("error")
-    def on_error(err):
-        logger.error("on_error: %s", err)
-        if str(err) == "Connection to remote host was lost.":
-            fugle.login()
-            fugle.connect_websocket()
-
-    @sdk.on("close")
-    def on_close(_, close_status_code, close_msg):
-        """
-        ws type: <class 'websocket._app.WebSocketApp'>
-        close_status_code type: <class 'NoneType'>
-        close_msg type: <class 'NoneType'>
-        """
-        logger.error("ws on_close %s %s", str(close_status_code), str(close_msg))
-
-    @sdk.on("order")
-    def on_order(_):
-        fugle.update_local_order()
-
-    @sdk.on("dealt")
-    def on_dealt(_):
-        fugle.update_local_order()
-
-    fugle.connect_websocket()
+    fugle.login()
+    fugle.update_local_order()
 
     try:
         server = GRPCServer(rabbit=rabbit, fugle=fugle)

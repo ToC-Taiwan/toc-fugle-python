@@ -20,23 +20,25 @@ MAX_LOGIN_RETRY = 3
 
 class Fugle:
     def __init__(self):
-        config = ConfigParser()
-        config.read("data/config.ini")
+        try:
+            self._config = ConfigParser()
+            self._config.read("data/config.ini")
+        except Exception as error:
+            logger.error("fugle initial failed: %s", error)
+            os._exit(1)
 
-        self._sdk = SDK(config)
+        self._sdk = None
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
         self.__get_inventory_time = 0.0
         self.__login_times = 0
-
-        self.login()
-        self.update_local_order()
         logger.info("fugle init done")
 
     def login(self) -> None:
         """
         login 登入
         """
+        self._sdk = SDK(self._config)
         try:
             if self.__login_times - 1 > MAX_LOGIN_RETRY:
                 logger.error("re-login over %d times, exit", MAX_LOGIN_RETRY)
@@ -45,6 +47,8 @@ class Fugle:
             if self.__login_times > 1:
                 logger.warning("try re-login %d of %d", self.__login_times - 1, MAX_LOGIN_RETRY)
             self._sdk.login()
+            self.set_callback()
+            self.connect_websocket()
             logger.info("login to fugle")
 
         except Exception as error:
@@ -366,3 +370,31 @@ class Fugle:
         if now.hour < 8 or now.hour > 15:
             return False
         return True
+
+    def set_callback(self):
+        @self._sdk.on("error")
+        def on_error(self, err):
+            logger.error("on_error: %s", err)
+            if str(err) == "Connection to remote host was lost.":
+                self.login()
+
+        @self._sdk.on("close")
+        def on_close(self, _, close_status_code, close_msg):
+            """
+            ws type: <class 'websocket._app.WebSocketApp'>
+            close_status_code type: <class 'NoneType'>
+            close_msg type: <class 'NoneType'>
+
+            example:
+            ws on_close 1000 Closed by the WebSocketManager
+            """
+            logger.error("ws on_close %s:%s", str(close_status_code), str(close_msg))
+            self.login()
+
+        @self._sdk.on("order")
+        def on_order(self, _):
+            self.update_local_order()
+
+        @self._sdk.on("dealt")
+        def on_dealt(self, _):
+            self.update_local_order()
