@@ -64,15 +64,16 @@ class Fugle:
         code = error.split(":")[0].strip()
         if code == "000997":
             return
-        if code == "A00001":
-            self.login()
-        else:
-            logger.error("%s error: %s", method_name, error)
+        # if code == "A00001":
+        #     self.login()
+        # else:
+        logger.error("%s error: %s", method_name, error)
 
     def connect_websocket(self):
         """
         connect_websocket Connect to websocket
         """
+        logger.info("connect to fugle websocket")
         threading.Thread(target=self._sdk.connect_websocket, daemon=True).start()
 
     def reset_password(self) -> None:

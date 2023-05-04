@@ -46,15 +46,18 @@ if __name__ == "__main__":
     @sdk.on("error")
     def on_error(err):
         logger.error("on_error: %s", err)
+        if str(err) == "Connection to remote host was lost.":
+            fugle.login()
+            fugle.connect_websocket()
 
     @sdk.on("close")
-    def on_close(websocket, close_status_code, close_msg):
-        logger.error("ws type: %s", type(websocket))
-        logger.error("close_status_code type: %s", type(close_status_code))
-        logger.error("close_msg type: %s", type(close_msg))
-        logger.error(websocket)
-        logger.error(close_status_code)
-        logger.error(close_msg)
+    def on_close(_, close_status_code, close_msg):
+        """
+        ws type: <class 'websocket._app.WebSocketApp'>
+        close_status_code type: <class 'NoneType'>
+        close_msg type: <class 'NoneType'>
+        """
+        logger.error("ws on_close %s %s", str(close_status_code), str(close_msg))
 
     @sdk.on("order")
     def on_order(_):
