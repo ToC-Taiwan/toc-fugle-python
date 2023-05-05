@@ -24,7 +24,7 @@ class Fugle:
             self._config = ConfigParser()
             self._config.read("data/config.ini")
         except Exception as error:
-            logger.error("fugle initial failed: %s", error)
+            logger.error("read fugle config failed: %s", error)
             os._exit(1)
 
         self._sdk = None
@@ -32,7 +32,6 @@ class Fugle:
         self.__order_map_lock = threading.Lock()
         self.__get_inventory_time = 0.0
         self.__login_times = 0
-        logger.info("fugle init done")
 
     def login(self) -> None:
         """
@@ -43,11 +42,16 @@ class Fugle:
             if self.__login_times - 1 > MAX_LOGIN_RETRY:
                 logger.error("re-login over %d times, exit", MAX_LOGIN_RETRY)
                 os._exit(1)
+
             self.__login_times += 1
             if self.__login_times > 1:
                 logger.warning("try re-login %d of %d", self.__login_times - 1, MAX_LOGIN_RETRY)
+
             self._sdk.login()
-            self.set_callback()
+            self.set_callback("error", self.on_error)
+            self.set_callback("close", self.on_close)
+            self.set_callback("order", self.on_order)
+            self.set_callback("dealt", self.on_dealt)
             self.connect_websocket()
             logger.info("login to fugle")
 
@@ -371,30 +375,28 @@ class Fugle:
             return False
         return True
 
-    def set_callback(self):
-        @self._sdk.on("error")
-        def on_error(self, err):
-            logger.error("on_error: %s", err)
-            if str(err) == "Connection to remote host was lost.":
-                self.login()
+    def set_callback(self, name, func):
+        self._sdk.__wsHandler.set_callback(name, func)
 
-        @self._sdk.on("close")
-        def on_close(self, _, close_status_code, close_msg):
-            """
-            ws type: <class 'websocket._app.WebSocketApp'>
-            close_status_code type: <class 'NoneType'>
-            close_msg type: <class 'NoneType'>
-
-            example:
-            ws on_close 1000 Closed by the WebSocketManager
-            """
-            logger.error("ws on_close %s:%s", str(close_status_code), str(close_msg))
+    def on_error(self, err):
+        logger.error("on_error: %s", err)
+        if str(err) == "Connection to remote host was lost.":
             self.login()
 
-        @self._sdk.on("order")
-        def on_order(self, _):
-            self.update_local_order()
+    def on_close(self, _, close_status_code, close_msg):
+        """
+        ws type: <class 'websocket._app.WebSocketApp'>
+        close_status_code type: <class 'NoneType'>
+        close_msg type: <class 'NoneType'>
 
-        @self._sdk.on("dealt")
-        def on_dealt(self, _):
-            self.update_local_order()
+        example:
+        ws on_close 1000 Closed by the WebSocketManager
+        """
+        logger.error("ws on_close %s:%s", str(close_status_code), str(close_msg))
+        self.login()
+
+    def on_order(self, _):
+        self.update_local_order()
+
+    def on_dealt(self, _):
+        self.update_local_order()

@@ -40,17 +40,21 @@ if __name__ == "__main__":
         8,
     )
 
-    fugle = Fugle()
-    fugle.login()
-    fugle.update_local_order()
-
     try:
+        fugle = Fugle()
+        fugle.login()
+        fugle.update_local_order()
         server = GRPCServer(rabbit=rabbit, fugle=fugle)
         server.serve(port=env.grpc_port)
 
     except RuntimeError:
         logger.error("runtime error, retry after 30 seconds")
         time.sleep(30)
+        os._exit(1)
+
+    except Exception:
+        logger.error("unknown error, retry after 15 seconds")
+        time.sleep(15)
         os._exit(1)
 
     except KeyboardInterrupt:
