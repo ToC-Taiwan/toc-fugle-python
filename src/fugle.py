@@ -23,11 +23,11 @@ class Fugle:
         try:
             self._config = ConfigParser()
             self._config.read("data/config.ini")
+            self._sdk = SDK(self._config)
         except Exception as error:
             logger.error("read fugle config failed: %s", error)
             os._exit(1)
 
-        self._sdk = None
         self.__order_map: dict[str, fe.OrderResult] = {}  # order_id: OrderResult
         self.__order_map_lock = threading.Lock()
         self.__get_inventory_time = 0.0
@@ -37,7 +37,7 @@ class Fugle:
         """
         login 登入
         """
-        self._sdk = SDK(self._config)
+
         try:
             if self.__login_times - 1 > MAX_LOGIN_RETRY:
                 logger.error("re-login over %d times, exit", MAX_LOGIN_RETRY)
@@ -45,6 +45,7 @@ class Fugle:
 
             self.__login_times += 1
             if self.__login_times > 1:
+                self._sdk = SDK(self._config)
                 logger.warning("try re-login %d of %d", self.__login_times - 1, MAX_LOGIN_RETRY)
 
             self._sdk.login()
@@ -52,8 +53,8 @@ class Fugle:
             self.set_callback("close", self.on_close)
             self.set_callback("order", self.on_order)
             self.set_callback("dealt", self.on_dealt)
-            self.connect_websocket()
             logger.info("login to fugle")
+            self.connect_websocket()
 
         except Exception as error:
             logger.error("login failed: %s", error)
@@ -376,7 +377,7 @@ class Fugle:
         return True
 
     def set_callback(self, name, func):
-        self._sdk.__wsHandler.set_callback(name, func)
+        self._sdk._SDK__wsHandler.set_callback(name, func)
 
     def on_error(self, err):
         logger.error("on_error: %s", err)
