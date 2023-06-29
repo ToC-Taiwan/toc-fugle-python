@@ -3,8 +3,8 @@ argon2-cffi-bindings==21.2.0
 certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.1.0
-fugle-trade==0.5.1
-fugle-trade-core==0.5.0
+fugle-trade==0.5.2
+fugle-trade-core==0.5.1
 grpcio==1.56.0
 grpcio-tools==1.56.0
 idna==3.4
@@ -23,5 +23,5 @@ python-dotenv==1.0.0
 requests==2.31.0
 schedule==1.2.0
 urllib3==2.0.3
-websocket-client==1.2.1
+websocket-client==1.6.1
 zipp==3.15.0
