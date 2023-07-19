@@ -9,6 +9,7 @@ import pika
 from pika.channel import Channel
 
 import fugle_entity as fe
+from logger import logger
 from pb import mq_pb2
 
 logging.getLogger("pika").setLevel(logging.WARNING)
@@ -125,9 +126,12 @@ class RabbitMQS:
             )
 
         rabbit = self.pika_queue.get(block=True)
-        rabbit.channel.basic_publish(
-            exchange=self.exchange,
-            routing_key="order_arr",
-            body=result.SerializeToString(),
-        )
+        try:
+            rabbit.channel.basic_publish(
+                exchange=self.exchange,
+                routing_key="order_arr",
+                body=result.SerializeToString(),
+            )
+        except Exception as err:
+            logger.error("send_order_arr error %s", err)
         self.pika_queue.put(rabbit)
