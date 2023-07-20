@@ -63,7 +63,10 @@ class RabbitMQS:
             on_message_callback=self.terminate,
             auto_ack=True,
         )
-        channel.start_consuming()
+        try:
+            channel.start_consuming()
+        except Exception as err:
+            logger.error("subscribe_terminate error %s", err)
 
     def terminate(self, channel, method, properties, body):  # pylint: disable=unused-argument
         os._exit(0)
@@ -76,8 +79,11 @@ class RabbitMQS:
                 if count >= self.pool_size:
                     break
                 rabbit = self.pika_queue.get(block=True)
-                rabbit.heartbeat()
-                count += 1
+                try:
+                    rabbit.heartbeat()
+                    count += 1
+                except Exception as err:
+                    logger.error("send_heartbeat error %s", err)
                 self.pika_queue.put(rabbit)
 
     def create_pika(self):
