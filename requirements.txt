@@ -5,8 +5,8 @@ cffi==1.15.1
 charset-normalizer==3.2.0
 fugle-trade==0.5.2
 fugle-trade-core==0.5.1
-grpcio==1.56.0
-grpcio-tools==1.56.0
+grpcio==1.56.2
+grpcio-tools==1.56.2
 idna==3.4
 importlib-metadata==6.8.0
 Jinja2==3.1.2
@@ -22,6 +22,6 @@ pycryptodome==3.18.0
 python-dotenv==1.0.0
 requests==2.31.0
 schedule==1.2.0
-urllib3==2.0.3
+urllib3==2.0.4
 websocket-client==1.6.1
 zipp==3.16.2
