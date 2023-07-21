@@ -41,10 +41,7 @@ if __name__ == "__main__":
     )
 
     try:
-        fugle = Fugle()
-        fugle.login()
-        fugle.update_local_order()
-        server = GRPCServer(rabbit=rabbit, fugle=fugle)
+        server = GRPCServer(rabbit=rabbit, fugle=Fugle())
         server.serve(port=env.grpc_port)
 
     except RuntimeError:

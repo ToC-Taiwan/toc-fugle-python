@@ -1,7 +1,5 @@
 import logging
-import os
 import threading
-import time
 from datetime import datetime
 from queue import Queue
 
@@ -40,66 +38,68 @@ class RabbitMQS:
         self.order_cb_lock = threading.Lock()
 
         # subscribe terminate
-        threading.Thread(target=self.subscribe_terminate, daemon=True).start()
+        # threading.Thread(target=self.subscribe_terminate, daemon=True).start()
 
-    def subscribe_terminate(self):
-        connection = pika.BlockingConnection(self.parameters)
-        channel = connection.channel()
+    # def subscribe_terminate(self):
+    #     connection = pika.BlockingConnection(self.parameters)
+    #     channel = connection.channel()
 
-        result = channel.queue_declare(queue="", exclusive=True)
-        # from https://www.rabbitmq.com/tutorials/tutorial-four-python.html
-        # The queue_declare method returns a tuple of 3 values:
-        # 1. queue name
-        # 2. message count
-        # 3. consumer count
-        queue_name = result.method.queue
-        channel.queue_bind(
-            exchange=self.exchange,
-            queue=queue_name,
-            routing_key="terminate",
-        )
-        channel.basic_consume(
-            queue=queue_name,
-            on_message_callback=self.terminate,
-            auto_ack=True,
-        )
-        try:
-            channel.start_consuming()
-        except Exception as err:
-            logger.error("subscribe_terminate error %s", err)
+    #     result = channel.queue_declare(queue="", exclusive=True)
+    #     # from https://www.rabbitmq.com/tutorials/tutorial-four-python.html
+    #     # The queue_declare method returns a tuple of 3 values:
+    #     # 1. queue name
+    #     # 2. message count
+    #     # 3. consumer count
+    #     queue_name = result.method.queue
+    #     channel.queue_bind(
+    #         exchange=self.exchange,
+    #         queue=queue_name,
+    #         routing_key="terminate",
+    #     )
+    #     channel.basic_consume(
+    #         queue=queue_name,
+    #         on_message_callback=self.terminate,
+    #         auto_ack=True,
+    #     )
+    #     try:
+    #         channel.start_consuming()
+    #     except Exception as err:
+    #         logger.error("subscribe_terminate error %s", err)
 
-    def terminate(self, channel, method, properties, body):  # pylint: disable=unused-argument
-        os._exit(0)
+    # def terminate(self, channel, method, properties, body):  # pylint: disable=unused-argument
+    #     os._exit(0)
 
-    def send_heartbeat(self):
-        while True:
-            time.sleep(20)
-            count = 0
-            while True:
-                if count >= self.pool_size:
-                    break
-                rabbit = self.pika_queue.get(block=True)
-                try:
-                    rabbit.heartbeat()
-                    count += 1
-                except Exception:
-                    pass
-                self.pika_queue.put(rabbit)
+    # def send_heartbeat(self):
+    #     while True:
+    #         time.sleep(20)
+    #         count = 0
+    #         while True:
+    #             if count >= self.pool_size:
+    #                 break
+    #             rabbit = self.pika_queue.get(block=True)
+    #             try:
+    #                 rabbit.heartbeat()
+    #                 count += 1
+    #             except Exception:
+    #                 pass
+    #             self.pika_queue.put(rabbit)
 
-    def create_pika(self):
-        conn = pika.BlockingConnection(self.parameters)
-        channel = conn.channel()
-        channel.exchange_declare(
-            exchange=self.exchange,
-            exchange_type="direct",
-            durable=True,
-        )
-        return PikaCC(conn, channel)
+    # def create_pika(self):
+    #     conn = pika.BlockingConnection(self.parameters)
+    #     channel = conn.channel()
+    #     channel.exchange_declare(exchange=self.exchange, exchange_type="direct", durable=True)
+    #     return PikaCC(conn, channel)
 
     def fill_pika_queue(self):
         for _ in range(self.pool_size):
-            self.pika_queue.put(self.create_pika())
-        threading.Thread(target=self.send_heartbeat, daemon=True).start()
+            conn = pika.BlockingConnection(self.parameters)
+            self.pika_queue.put(
+                PikaCC(
+                    conn,
+                    conn.channel().exchange_declare(exchange=self.exchange, exchange_type="direct", durable=True),
+                )
+            )
+        # threading.Thread(target=self.send_heartbeat, daemon=True).start()
 
     def send_order_arr(self, arr: list[fe.OrderResult]):
         if len(arr) == 0:

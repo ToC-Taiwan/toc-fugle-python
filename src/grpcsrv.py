@@ -9,38 +9,21 @@ import grpc
 
 from fugle import Fugle
 from logger import logger
-from pb import basic_pb2, basic_pb2_grpc, trade_pb2, trade_pb2_grpc
+from pb import basic_pb2_grpc, trade_pb2, trade_pb2_grpc
 from rabbitmq import RabbitMQS
 from simulator import Simulator
 from status import OrderStatus
 
 
 class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
-    def __init__(self):
-        self.heart_beat_client_arr: list[str] = []
-        self.heart_beat_client_arr_lock = threading.Lock()
+    def __init__(self, fugle: Fugle):
+        self.fugle = fugle
 
-    def Heartbeat(self, request_iterator, context: grpc.ServicerContext):
-        for beat in request_iterator:
-            with self.heart_beat_client_arr_lock:
-                if len(self.heart_beat_client_arr) > 0:
-                    yield basic_pb2.BeatMessage(error="fugle only one client allowed")
-                else:
-                    self.heart_beat_client_arr.append(beat.message)
-                    threading.Thread(target=self.check_context, args=(context,), daemon=True).start()
-                    logger.info("new fugle gRPC client connected: %s", beat.message)
-            yield basic_pb2.BeatMessage(message=beat.message)
-
-    def check_context(self, context: grpc.ServicerContext):
+    def CreateLongConnection(self, request_iterator, context: grpc.ServicerContext):
+        logger.info("new fugle gRPC client connected")
         while context.is_active():
             time.sleep(1)
-
-        logger.info("fugle gRPC client disconnected")
-        with self.heart_beat_client_arr_lock:
-            if len(self.heart_beat_client_arr) > 0 and self.heart_beat_client_arr[0] == "debug":
-                self.heart_beat_client_arr.clear()
-                return
-            os._exit(0)
+        os._exit(0)
 
     def Terminate(self, request, _):
         threading.Thread(target=self.wait_and_terminate, daemon=True).start()
@@ -49,6 +32,11 @@ class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):
     def wait_and_terminate(self):
         time.sleep(3)
         os._exit(0)
+
+    def Login(self, request, _):
+        self.fugle.login()
+        self.fugle.update_local_order()
+        return google.protobuf.empty_pb2.Empty()
 
 
 class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
@@ -230,7 +218,7 @@ class RPCTrade(trade_pb2_grpc.TradeInterfaceServicer):
 
 class GRPCServer:
     def __init__(self, rabbit: RabbitMQS, fugle: Fugle):
-        basic_servicer = RPCBasic()
+        basic_servicer = RPCBasic(fugle=fugle)
         trade_servicer = RPCTrade(rabbit=rabbit, fugle=fugle)
         server = grpc.server(
             futures.ThreadPoolExecutor(),
