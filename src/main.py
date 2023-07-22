@@ -44,15 +44,9 @@ if __name__ == "__main__":
         server = GRPCServer(rabbit=rabbit, fugle=Fugle())
         server.serve(port=env.grpc_port)
 
-    except RuntimeError:
-        logger.error("runtime error, retry after 30 seconds")
-        time.sleep(30)
-        os._exit(1)
+    except Exception as e:
+        logger.error(e)
 
-    except Exception:
-        logger.error("unknown error, retry after 15 seconds")
-        time.sleep(15)
-        os._exit(1)
-
-    except KeyboardInterrupt:
+    finally:
+        logger.info("shutdown fugle")
         os._exit(0)
