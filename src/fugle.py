@@ -15,7 +15,7 @@ from logger import logger
 logging.getLogger("websocket").propagate = False
 
 
-MAX_LOGIN_RETRY = 3
+MAX_LOGIN_RETRY = 10
 
 
 class Fugle:
