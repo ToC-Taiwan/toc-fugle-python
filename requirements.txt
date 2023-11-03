@@ -2,11 +2,11 @@ argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
 certifi==2023.7.22
 cffi==1.16.0
-charset-normalizer==3.3.1
+charset-normalizer==3.3.2
 fugle-trade==1.0.0
 fugle-trade-core==1.0.0
-grpcio==1.59.0
-grpcio-tools==1.59.0
+grpcio==1.59.2
+grpcio-tools==1.59.2
 idna==3.4
 importlib-metadata==6.8.0
 Jinja2==3.1.2
@@ -15,8 +15,8 @@ keyrings.cryptfile==1.3.8
 MarkupSafe==2.1.3
 numpy==1.26.1
 pika==1.3.2
-prometheus-client==0.17.1
-protobuf==4.24.4
+prometheus-client==0.18.0
+protobuf==4.25.0
 pycparser==2.21
 pycryptodome==3.19.0
 python-dotenv==1.0.0
