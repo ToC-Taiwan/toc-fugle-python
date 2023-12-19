@@ -3,8 +3,8 @@ argon2-cffi-bindings==21.2.0
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
-fugle-trade==1.0.0
-fugle-trade-core==1.0.0
+fugle-trade==1.1.1
+fugle-trade-core==2.0.0
 grpcio==1.60.0
 grpcio-tools==1.60.0
 idna==3.6
