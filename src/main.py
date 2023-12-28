@@ -8,7 +8,7 @@ from prometheus_client import start_http_server
 
 from env import RequiredEnv
 from fugle import Fugle
-from grpcsrv import GRPCServer
+from grpcsrv.grpcsrv import GRPCServer
 from logger import logger
 from rabbitmq import RabbitMQS
 from rabbitmq_setting import RabbitMQSetting
