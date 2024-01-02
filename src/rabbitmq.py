@@ -122,6 +122,7 @@ class RabbitMQS:
 
             result.data.append(
                 mq_pb2.OrderStatus(
+                    type=mq_pb2.OrderType.TYPE_STOCK_LOT,
                     code=order.stock_no,
                     action=str(order_action),
                     price=order.od_price,
