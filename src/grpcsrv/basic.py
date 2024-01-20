@@ -7,7 +7,7 @@ import grpc
 
 from fugle import Fugle
 from logger import logger
-from pb import basic_pb2_grpc
+from pb.forwarder import basic_pb2_grpc
 
 
 class RPCBasic(basic_pb2_grpc.BasicDataInterfaceServicer):

@@ -8,7 +8,7 @@ from pika.channel import Channel
 
 import fugle_entity as fe
 from logger import logger
-from pb import mq_pb2
+from pb.forwarder import mq_pb2
 
 logging.getLogger("pika").setLevel(logging.WARNING)
 

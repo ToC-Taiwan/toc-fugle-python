@@ -4,7 +4,7 @@ from datetime import datetime
 import google.protobuf.empty_pb2
 
 from fugle import Fugle
-from pb import trade_pb2, trade_pb2_grpc
+from pb.forwarder import trade_pb2, trade_pb2_grpc
 from rabbitmq import RabbitMQS
 from simulator import Simulator
 from status import OrderStatus

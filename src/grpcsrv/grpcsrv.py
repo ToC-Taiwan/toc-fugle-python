@@ -4,7 +4,7 @@ import grpc
 
 from fugle import Fugle
 from logger import logger
-from pb import basic_pb2_grpc, trade_pb2_grpc
+from pb.forwarder import basic_pb2_grpc, trade_pb2_grpc
 from rabbitmq import RabbitMQS
 
 from .basic import RPCBasic
